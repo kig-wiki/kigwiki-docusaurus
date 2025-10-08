@@ -1,6 +1,47 @@
 import { visit } from 'unist-util-visit';
 import type { Plugin } from 'unified';
 
+// Type definitions
+interface TikTokOEmbed {
+  html: string;
+  version: string;
+  type: string;
+  title: string;
+  provider_name: string;
+}
+
+interface MdxJsxAttribute {
+  type: 'mdxJsxAttribute';
+  name: string;
+  value: string;
+}
+
+interface MdxJsxFlowElement {
+  type: 'mdxJsxFlowElement';
+  name: string;
+  attributes: MdxJsxAttribute[];
+}
+
+interface EmbedResolver {
+  canHandle: (url: string) => boolean;
+  resolve: (url: string) => Promise<{ name: string; value: string }>;
+}
+
+// Custom error types
+class EmbedResolutionError extends Error {
+  constructor(message: string, public readonly url: string, public readonly originalError?: Error) {
+    super(message);
+    this.name = 'EmbedResolutionError';
+  }
+}
+
+class DidResolutionError extends Error {
+  constructor(message: string, public readonly handle: string, public readonly originalError?: Error) {
+    super(message);
+    this.name = 'DidResolutionError';
+  }
+}
+
 // Simple rate limiter implementation
 class RateLimiter {
   private queue: Array<() => Promise<any>> = [];
@@ -54,70 +95,147 @@ class RateLimiter {
 // Create rate limiter instance
 const rateLimiter = new RateLimiter();
 
-// Add TikTok oembed interface
-interface TikTokOEmbed {
-  html: string;
-  version: string;
-  type: string;
-  title: string;
-  provider_name: string;
-}
+// URL parsing utilities
+const parseBlueskyUrl = (url: string): string | null => {
+  const match = url.match(/bsky\.app\/profile\/([\w.-]+)\/post\//);
+  return match ? match[1] : null;
+};
 
-// Add these type definitions at the top of the file
-interface MdxJsxAttribute {
-  type: 'mdxJsxAttribute';
-  name: string;
-  value: string;
-}
+const isBlueskyUrl = (url: string): boolean => url.includes('bsky.app');
+const isTikTokUrl = (url: string): boolean => url.includes('tiktok.com');
 
-interface MdxJsxFlowElement {
-  type: 'mdxJsxFlowElement';
-  name: string;
-  attributes: MdxJsxAttribute[];
-}
-
-// Resolves Bluesky handles to DIDs
-// If we need to resolve other such social media handles, we can add them here
-
+// DID resolution with improved error handling
 const resolveDid = async (handle: string): Promise<string> => {
   console.log('Starting DID resolution for handle:', handle);
+  
   return rateLimiter.add(async () => {
     try {
       const url = `https://bsky.social/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`;
       console.log('Fetching from URL:', url);
       
       const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new DidResolutionError(
+          `Failed to resolve DID: ${response.statusText}`,
+          handle
+        );
+      }
+      
       const data = await response.json();
       console.log('API Response:', { status: response.status, data });
       
-      if (!response.ok) {
-        console.error('Failed to resolve DID:', data);
-        throw new Error(`Failed to resolve DID: ${response.statusText}`);
-      }
-      
       if (!data.did) {
-        console.error('No DID in response:', data);
-        throw new Error('No DID in response');
+        throw new DidResolutionError('No DID in response', handle);
       }
       
       console.log('Successfully resolved DID:', data.did);
       return data.did;
     } catch (error) {
       console.error('Error in resolveDid:', error);
-      throw error;
+      if (error instanceof DidResolutionError) {
+        throw error;
+      }
+      throw new DidResolutionError(
+        `Unexpected error resolving DID: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        handle,
+        error instanceof Error ? error : undefined
+      );
     }
   });
 };
 
-// Add TikTok oembed resolver
+// TikTok embed resolver with improved error handling
 const resolveTikTokEmbed = async (url: string): Promise<string> => {
   return rateLimiter.add(async () => {
-    const response = await fetch(
-      `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`
-    );
-    const data: TikTokOEmbed = await response.json();
-    return data.html;
+    try {
+      const response = await fetch(
+        `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`
+      );
+      
+      if (!response.ok) {
+        throw new EmbedResolutionError(
+          `Failed to fetch TikTok embed: ${response.statusText}`,
+          url
+        );
+      }
+      
+      const data: TikTokOEmbed = await response.json();
+      return data.html;
+    } catch (error) {
+      if (error instanceof EmbedResolutionError) {
+        throw error;
+      }
+      throw new EmbedResolutionError(
+        `Unexpected error resolving TikTok embed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        url,
+        error instanceof Error ? error : undefined
+      );
+    }
   });
+};
+
+// Embed resolvers registry using strategy pattern
+const embedResolvers: EmbedResolver[] = [
+  {
+    canHandle: isBlueskyUrl,
+    resolve: async (url: string) => {
+      const handle = parseBlueskyUrl(url);
+      if (!handle) {
+        throw new EmbedResolutionError('Could not extract handle from Bluesky URL', url);
+      }
+      
+      const did = await resolveDid(handle);
+      return { name: 'did', value: did };
+    }
+  },
+  {
+    canHandle: isTikTokUrl,
+    resolve: async (url: string) => {
+      const html = await resolveTikTokEmbed(url);
+      return { name: 'embedHtml', value: html };
+    }
+  }
+];
+
+// Helper function to find appropriate resolver
+const findResolver = (url: string): EmbedResolver | null => {
+  return embedResolvers.find(resolver => resolver.canHandle(url)) || null;
+};
+
+// Helper function to process a single embed
+const processEmbed = async (node: MdxJsxFlowElement, postUrl: string): Promise<void> => {
+  const resolver = findResolver(postUrl);
+  
+  if (!resolver) {
+    console.warn(`No resolver found for URL: ${postUrl}`);
+    return;
+  }
+
+  try {
+    const { name, value } = await resolver.resolve(postUrl);
+    
+    node.attributes.push({
+      type: 'mdxJsxAttribute',
+      name,
+      value,
+    });
+    
+    console.log(`Successfully added ${name} attribute to node`);
+  } catch (error) {
+    console.error(`Error processing embed for URL ${postUrl}:`, error);
+  }
+};
+
+// Helper function to extract post attribute
+const getPostAttribute = (node: MdxJsxFlowElement): string | null => {
+  const postAttr = node.attributes.find((attr: MdxJsxAttribute) => attr.name === 'post')?.value;
+  return typeof postAttr === 'string' ? postAttr : null;
+};
+
+// Helper function to check if node is a SocialEmbed
+const isSocialEmbed = (node: MdxJsxFlowElement): boolean => {
+  return node.name === 'SocialEmbed' && Boolean(node.attributes);
 };
 
 const remarkSocialEmbeds: Plugin = () => {
@@ -125,54 +243,22 @@ const remarkSocialEmbeds: Plugin = () => {
     const promises: Promise<void>[] = [];
 
     visit(tree, 'mdxJsxFlowElement', (node: MdxJsxFlowElement) => {
-      if (node.name === 'SocialEmbed' && node.attributes) {
-        const postAttr = node.attributes.find((attr: MdxJsxAttribute) => attr.name === 'post')?.value;
-        console.log('Processing SocialEmbed with post:', postAttr);
-        
-        if (typeof postAttr === 'string') {
-          if (postAttr.includes('bsky.app')) {
-            const match = postAttr.match(/bsky\.app\/profile\/([\w.-]+)\/post\//);
-            console.log('URL match result:', match);
-            
-            if (match) {
-              const handle = match[1];
-              console.log('Extracted handle:', handle);
-              
-              promises.push(
-                resolveDid(handle)
-                  .then((did) => {
-                    console.log('Received DID:', did);
-                    if (!did || typeof did !== 'string') {
-                      console.warn(`Invalid DID returned for handle: ${handle}`);
-                      return;
-                    }
-                    node.attributes.push({
-                      type: 'mdxJsxAttribute',
-                      name: 'did',
-                      value: did,
-                    });
-                    console.log('Successfully added DID attribute to node');
-                  })
-                  .catch((error) => {
-                    console.error(`Error resolving DID for handle ${handle}:`, error);
-                  })
-              );
-            } else {
-              console.warn('No handle match found in URL:', postAttr);
-            }
-          } else if (postAttr.includes('tiktok.com')) {
-            promises.push(
-              resolveTikTokEmbed(postAttr).then((html) => {
-                node.attributes.push({
-                  type: 'mdxJsxAttribute',
-                  name: 'embedHtml',
-                  value: html,
-                });
-              })
-            );
-          }
-        }
+      // Early return if not a SocialEmbed
+      if (!isSocialEmbed(node)) {
+        return;
       }
+
+      const postUrl = getPostAttribute(node);
+      
+      // Early return if no post URL
+      if (!postUrl) {
+        console.warn('SocialEmbed node has no post attribute');
+        return;
+      }
+
+      console.log('Processing SocialEmbed with post:', postUrl);
+      
+      promises.push(processEmbed(node, postUrl));
     });
 
     console.log('Waiting for all promises to resolve...');

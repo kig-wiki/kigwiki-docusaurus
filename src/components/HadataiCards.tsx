@@ -1,114 +1,139 @@
 import React, { useState, useMemo, useCallback, memo } from 'react';
 import type { Hadatai } from '../plugins/docusaurus-plugin-maker-data';
 import { useDebounce } from '../hooks/useDebounce';
+import LinkIcon from './shared/LinkIcon';
+import { SEARCH_DEBOUNCE_MS } from '../utils/makerSocialUtils';
+import { filterHadataiBySearch, sortHadatai, supportsHadataiEnglishOrdering } from '../utils/filterUtils';
+import type { SortConfig } from '../utils/filterUtils';
 
 interface HadataiCardsProps {
   className?: string;
   data: Hadatai[];
 }
 
-interface SortConfig {
-  key: keyof Hadatai;
-  direction: 'asc' | 'desc';
-}
+type HadataiSortConfig = SortConfig<Hadatai>;
 
-const LinkIcon: React.FC<{ platform: string; url: string; isWebsite?: boolean }> = memo(({ platform, url, isWebsite = false }) => {
-  if (!url || typeof url !== 'string' || url.trim() === '') return null;
-
-  const getIconPath = (platform: string) => {
-    const lowerPlatform = platform.toLowerCase();
-    if (lowerPlatform.includes('twitter') || lowerPlatform.includes('x.com')) {
-      return '/social_icons/x.svg';
-    } else if (lowerPlatform.includes('instagram')) {
-      return '/social_icons/instagram.svg';
-    } else if (lowerPlatform.includes('facebook')) {
-      return '/social_icons/facebook.svg';
-    } else if (lowerPlatform.includes('weibo')) {
-      return '/social_icons/weibo.svg';
-    } else if (lowerPlatform.includes('tiktok')) {
-      return '/social_icons/tiktok.svg';
-    } else if (lowerPlatform.includes('bluesky')) {
-      return '/social_icons/bluesky.svg';
-    } else {
-      return null; // No icon available
-    }
-  };
-
-  const iconPath = isWebsite ? null : getIconPath(platform);
-  const displayName = isWebsite ? 'Website' : platform;
+const HadataiCard: React.FC<{ item: Hadatai }> = memo(({ item }) => {
+  // More robust check for socials - ensure there are valid URLs
+  const hasSocials = item.socials && 
+    typeof item.socials === 'object' && 
+    Object.keys(item.socials).length > 0 &&
+    Object.values(item.socials).some(url => url && typeof url === 'string' && url.trim() !== '');
+  
+  const hasPriceExamples = item.priceExamples && item.priceExamples.length > 0;
+  const hasNotes = typeof item.notes === 'string';
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="link-item"
-      title={`${displayName} - ${url}`}
-    >
-      {iconPath ? (
-        <img 
-          src={iconPath} 
-          alt={displayName}
-          className="link-icon"
-        />
-      ) : (
-        <span className="link-text">{displayName}</span>
+    <div className="hadatai-card">
+      <div className="hadatai-card-header">
+        <h3 className="hadatai-name">
+          {item.name}
+        </h3>
+        {typeof item.region === 'string' && (
+          <span className="region-badge">Ships from: {item.region}</span>
+        )}
+      </div>
+
+      {supportsHadataiEnglishOrdering(item) && (
+        <div className="hadatai-card-badges">
+          <span className="english-ordering-badge">English Ordering Available</span>
+        </div>
       )}
-    </a>
+
+      <div className="hadatai-card-content">
+        {hasSocials && (
+          <div className="hadatai-field">
+            <span className="field-label">Links:</span>
+            <div className="links-container">
+              {Object.entries(item.socials!).map(([platform, url]) => (
+                <LinkIcon key={platform} platform={platform} url={String(url)} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {hasPriceExamples && (
+          <div className="hadatai-field">
+            <span className="field-label">Price Examples:</span>
+            <div className="price-examples">
+              {item.priceExamples!.map((example, idx) => (
+                <div key={idx} className="price-example">
+                  <div className="price-example-type">{example.type}</div>
+                  <div className="price-example-price">
+                    {example.link ? (
+                      <a 
+                        href={example.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="price-link"
+                      >
+                        {example.price}
+                      </a>
+                    ) : (
+                      example.price
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {hasNotes && (
+          <div className="hadatai-field">
+            <span className="field-label">Notes:</span>
+            <p className="notes">{item.notes}</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 });
 
 const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
+  const [showEnglishOnly, setShowEnglishOnly] = useState(false);
+  const [sortConfig, setSortConfig] = useState<HadataiSortConfig>({ key: 'name', direction: 'asc' });
   
   // Debounce search term to avoid excessive filtering
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS);
 
   const filteredAndSortedHadatai = useMemo(() => {
     let filtered = data;
 
-    // Apply search filter
-    if (debouncedSearchTerm.trim()) {
-      const term = debouncedSearchTerm.toLowerCase();
-      filtered = data.filter(item =>
-        item.name.toLowerCase().includes(term) ||
-        item.region?.toLowerCase().includes(term) ||
-        item.notes?.toLowerCase().includes(term) ||
-        item.priceExamples?.some(example =>
-          example.type.toLowerCase().includes(term) ||
-          example.price.toString().toLowerCase().includes(term)
-        )
-      );
+    // Apply English ordering filter
+    if (showEnglishOnly) {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(supportsHadataiEnglishOrdering);
+      console.log(`English filter: ${beforeCount} → ${filtered.length} hadatai makers`);
     }
 
+    // Apply search filter
+    filtered = filterHadataiBySearch(filtered, debouncedSearchTerm);
+
     // Apply sorting
-    return [...filtered].sort((a, b) => {
-      const aVal = a[sortConfig.key];
-      const bVal = b[sortConfig.key];
-      
-      if (aVal === undefined && bVal === undefined) return 0;
-      if (aVal === undefined) return sortConfig.direction === 'asc' ? 1 : -1;
-      if (bVal === undefined) return sortConfig.direction === 'asc' ? -1 : 1;
-      
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortConfig.direction === 'asc' 
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal);
-      }
-      
-      return 0;
-    });
-  }, [data, debouncedSearchTerm, sortConfig]);
+    return sortHadatai(filtered, sortConfig);
+  }, [data, debouncedSearchTerm, showEnglishOnly, sortConfig]);
 
   // Memoize event handlers to prevent unnecessary re-renders
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   }, []);
 
+  const handleEnglishOnlyChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setShowEnglishOnly(e.target.checked);
+  }, []);
+
   const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const [key, direction] = e.target.value.split('-');
-    setSortConfig({ key: key as keyof Hadatai, direction: direction as 'asc' | 'desc' });
+    
+    // Validate the parsed values
+    if (key && direction && (direction === 'asc' || direction === 'desc')) {
+      setSortConfig({ 
+        key: key as keyof Hadatai, 
+        direction: direction as 'asc' | 'desc' 
+      });
+    }
   }, []);
 
   return (
@@ -122,6 +147,17 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
             onChange={handleSearchChange}
             className="search-input"
           />
+        </div>
+
+        <div className="hadatai-cards-filters">
+          <label className="filter-toggle">
+            <input
+              type="checkbox"
+              checked={showEnglishOnly}
+              onChange={handleEnglishOnlyChange}
+            />
+            <span className="filter-label">English ordering only</span>
+          </label>
         </div>
         
         <div className="hadatai-cards-sort">
@@ -147,63 +183,7 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
           </div>
         ) : (
           filteredAndSortedHadatai.map((item, index) => (
-            <div key={`${item.name}-${index}`} className="hadatai-card">
-              <div className="hadatai-card-header">
-                <h3 className="hadatai-name">
-                  {item.name}
-                </h3>
-                {typeof item.region === 'string' && (
-                  <span className="region-badge">Ships from: {item.region}</span>
-                )}
-              </div>
-
-              <div className="hadatai-card-content">
-                {item.socials && typeof item.socials === 'object' && Object.keys(item.socials).length > 0 && (
-                  <div className="hadatai-field">
-                    <span className="field-label">Links:</span>
-                    <div className="links-container">
-                      {Object.entries(item.socials).map(([platform, url]) => (
-                        <LinkIcon key={platform} platform={platform} url={String(url)} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {item.priceExamples && item.priceExamples.length > 0 && (
-                  <div className="hadatai-field">
-                    <span className="field-label">Price Examples:</span>
-                    <div className="price-examples">
-                      {item.priceExamples.map((example, idx) => (
-                        <div key={idx} className="price-example">
-                          <div className="price-example-type">{example.type}</div>
-                          <div className="price-example-price">
-                            {example.link ? (
-                              <a 
-                                href={example.link} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="price-link"
-                              >
-                                {example.price}
-                              </a>
-                            ) : (
-                              example.price
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {typeof item.notes === 'string' && (
-                  <div className="hadatai-field">
-                    <span className="field-label">Notes:</span>
-                    <p className="notes">{item.notes}</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            <HadataiCard key={`${item.name}-${index}`} item={item} />
           ))
         )}
       </div>

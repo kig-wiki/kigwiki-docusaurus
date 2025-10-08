@@ -39,7 +39,11 @@ const config = {
   trailingSlash: true,
   // Quality of life, perhaps worth setting stricter
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   presets: [
     [

@@ -1,15 +1,15 @@
 services:
   web:
     container_name: kigwiki-site
-    build: ./kigwiki-docusaurus
+    build: ./
     ports:
       - "3100:3000"
     volumes:
-      - ./kigwiki-docusaurus:/app
-      - ./docs:/app/docs
-      - ./makers:/app/makers  
-      - ./hadatai:/app/hadatai
-      - ./static:/app/static
+      - ./:/app
+      - ../docs:/app/docs
+      - ../makers:/app/makers  
+      - ../hadatai:/app/hadatai
+      - ../static:/app/static
       - /app/node_modules
       - /app/.docusaurus
     environment:

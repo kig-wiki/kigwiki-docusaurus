@@ -1,14 +1,14 @@
 services:
   build:
     container_name: kigwiki-build
-    build: ./kigwiki-docusaurus
+    build: ./
     volumes:
-      - ./kigwiki-docusaurus:/app
-      - ./docs:/app/docs
-      - ./makers:/app/makers
-      - ./hadatai:/app/hadatai  
-      - ./static:/app/static
-      - ./build:/app/build
+      - ./:/app
+      - ../docs:/app/docs
+      - ../makers:/app/makers  
+      - ../hadatai:/app/hadatai
+      - ../static:/app/static
+      - ../build:/app/build
     command: |
       sh -c "
         # Copy all content files, excluding the submodule directory

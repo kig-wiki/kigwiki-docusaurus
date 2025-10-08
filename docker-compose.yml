@@ -1,0 +1,17 @@
+services:
+  web:
+    container_name: kigwiki-site
+    build: ./kigwiki-docusaurus
+    ports:
+      - "3100:3000"
+    volumes:
+      - ./kigwiki-docusaurus:/app
+      - ./docs:/app/docs
+      - ./makers:/app/makers  
+      - ./hadatai:/app/hadatai
+      - ./static:/app/static
+      - /app/node_modules
+      - /app/.docusaurus
+    environment:
+      - NODE_ENV=development
+    command: npm run start -- --host 0.0.0.0

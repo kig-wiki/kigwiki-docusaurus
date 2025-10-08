@@ -1,0 +1,21 @@
+services:
+  build:
+    container_name: kigwiki-build
+    build: ./kigwiki-docusaurus
+    volumes:
+      - ./kigwiki-docusaurus:/app
+      - ./docs:/app/docs
+      - ./makers:/app/makers
+      - ./hadatai:/app/hadatai  
+      - ./static:/app/static
+      - ./build:/app/build
+    command: |
+      sh -c "
+        # Copy all content files, excluding the submodule directory
+        find .. -maxdepth 1 -type f -name '*.md' -exec cp {} . \;
+        find .. -maxdepth 1 -type d -name 'docs' -exec cp -r {} . \;
+        find .. -maxdepth 1 -type d -name 'makers' -exec cp -r {} . \;
+        find .. -maxdepth 1 -type d -name 'hadatai' -exec cp -r {} . \;
+        find .. -maxdepth 1 -type d -name 'static' -exec cp -r {} . \;
+        npm run build
+      "

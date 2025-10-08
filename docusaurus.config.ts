@@ -112,7 +112,7 @@ const config = {
             },
             {
               label: 'Get Started',
-              to: '/what-is-kigurumi',
+              to: '/start/what-is-kigurumi',
             },
           ],
         },

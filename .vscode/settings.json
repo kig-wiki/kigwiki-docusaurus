@@ -29,5 +29,11 @@
   "markdown.validate.enabled": true,
   "markdown.updateLinksOnFileMove.enabled": "prompt",
   "markdown.preview.breaks": true,
-  "markdown.extension.toc.updateOnSave": true
+  "markdown.extension.toc.updateOnSave": true,
+  "yaml.validate": true,
+  "yaml.format.enable": true,
+  "yaml.format.singleQuote": false,
+  "yaml.format.bracketSpacing": true,
+  "yaml.format.printWidth": 100,
+  "yaml.customTags": []
 } 

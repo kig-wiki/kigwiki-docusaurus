@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback, memo } from 'react';
 import type { Maker } from '../plugins/docusaurus-plugin-maker-data';
 import { useDebounce } from '../hooks/useDebounce';
 import LinkIcon from './shared/LinkIcon';
-import StatusBadge from './shared/StatusBadge';
 import { SEARCH_DEBOUNCE_MS } from '../utils/makerSocialUtils';
 import { 
   filterMakersBySearch, 
@@ -41,7 +40,6 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
             <span className="maker-alias"> ({maker.alias})</span>
           )}
         </h3>
-        <StatusBadge status={maker.status} />
       </div>
 
       <div className="maker-card-content">
@@ -203,8 +201,6 @@ const MakersCards: React.FC<MakersCardsProps> = memo(({ className = '', data }) 
           >
             <option value="name-asc">Name (A-Z)</option>
             <option value="name-desc">Name (Z-A)</option>
-            <option value="status-asc">Status (Open first)</option>
-            <option value="status-desc">Status (Closed first)</option>
             <option value="priceTier-asc">Price Tier (Low to High)</option>
             <option value="priceTier-desc">Price Tier (High to Low)</option>
             <option value="region-asc">Region (A-Z)</option>

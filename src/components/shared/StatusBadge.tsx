@@ -1,3 +1,5 @@
+// Future not to self, probably remove this in a future release. Status data structure still exists but moving away from it.
+
 import React, { memo } from 'react';
 import { getStatusColor } from '../../utils/makerSocialUtils';
 

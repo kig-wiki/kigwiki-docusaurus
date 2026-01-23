@@ -9,6 +9,7 @@ import {
   supportsEnglishOrdering 
 } from '../utils/filterUtils';
 import type { SortConfig } from '../utils/filterUtils';
+import { parseNotesWithLinks } from '../utils/textUtils';
 
 interface MakersCardsProps {
   className?: string;
@@ -110,10 +111,10 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
           </div>
         )}
 
-        {hasNotes && (
+        {hasNotes && typeof maker.notes === 'string' && (
           <div className="maker-field">
             <span className="field-label">Notes:</span>
-            <p className="notes">{maker.notes}</p>
+            <p className="notes">{parseNotesWithLinks(maker.notes)}</p>
           </div>
         )}
       </div>

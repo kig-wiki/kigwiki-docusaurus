@@ -5,6 +5,7 @@ import LinkIcon from './shared/LinkIcon';
 import { SEARCH_DEBOUNCE_MS } from '../utils/makerSocialUtils';
 import { filterHadataiBySearch, sortHadatai, supportsHadataiEnglishOrdering } from '../utils/filterUtils';
 import type { SortConfig } from '../utils/filterUtils';
+import { parseNotesWithLinks } from '../utils/textUtils';
 
 interface HadataiCardsProps {
   className?: string;
@@ -79,10 +80,10 @@ const HadataiCard: React.FC<{ item: Hadatai }> = memo(({ item }) => {
           </div>
         )}
 
-        {hasNotes && (
+        {hasNotes && typeof item.notes === 'string' && (
           <div className="hadatai-field">
             <span className="field-label">Notes:</span>
-            <p className="notes">{item.notes}</p>
+            <p className="notes">{parseNotesWithLinks(item.notes)}</p>
           </div>
         )}
       </div>

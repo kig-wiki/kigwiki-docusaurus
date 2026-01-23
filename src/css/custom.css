@@ -6,27 +6,135 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #5b4a91; /* Main, desaturated purple */
-  --ifm-color-primary-dark: #504080; /* Slightly darker */
-  --ifm-color-primary-darker: #453870; /* Darker still */
-  --ifm-color-primary-darkest: #3b3160; /* Darkest */
-  --ifm-color-primary-light: #6858a1; /* Slightly lighter */
-  --ifm-color-primary-lighter: #7667b1; /* Even lighter */
-  --ifm-color-primary-lightest: #8a7cc1; /* Lightest shade */
+  /* Light mode colors using LAB color space */
+  --ifm-background-color: lab(96% 1 4);
+  --ifm-background-surface-color: lab(93% 3 5);
+  --ifm-color-content: lab(37% 9 -21);
+  --ifm-font-color-base: var(--ifm-color-content);
+  --ifm-footer-background-color: var(--ifm-background-surface-color);
+  --ifm-footer-color: var(--ifm-color-content);
+  --ifm-link-color: lab(49% 38 -1);
+  --ifm-link-hover-color: lab(49% 38 -1);
+  --ifm-hover-overlay: lab(37% 9 -21 / 0.2);
+  --ifm-menu-color: var(--ifm-color-content);
+  --ifm-color-secondary-contrast-background: var(--ifm-background-surface-color);
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(91, 74, 145, 0.1); /* Soft purple highlight */
+  --docusaurus-highlighted-code-line-bg: lab(62% 5 -9 / 0.5);
+  --ifm-toc-border-color: var(--ifm-background-surface-color);
+  
+  /* Color emphasis scale - light mode (varying L, keeping a/b from navbar) */
+  /* 0 is darkest (text), 300 is navbar, 1000 is darker than navbar */
+  --ifm-color-emphasis-0: lab(100% 3 5);
+  --ifm-color-emphasis-100: lab(99% 3 5);
+  --ifm-color-emphasis-200: lab(98% 3 5);
+  --ifm-color-emphasis-300: lab(93% 3 5);
+  --ifm-color-emphasis-400: lab(90% 3 5);
+  --ifm-color-emphasis-500: lab(85% 3 5);
+  /* I know these two are differing some from the scale but lots of text uses 600 and 700 and I'd rather just make them darker without changing things too much. */
+  --ifm-color-emphasis-600: lab(50% 3 5);
+  --ifm-color-emphasis-700: lab(40% 3 5);
+  /* ^ Those two */
+  --ifm-color-emphasis-800: lab(60% 3 5);
+  --ifm-color-emphasis-900: lab(50% 3 5);
+  --ifm-color-emphasis-1000: lab(40% 3 5);
+
+  /* Primary accent colors - purpleish (variants by adjusting L) */
+  --ifm-color-primary: lab(55% 16 -22);
+  --ifm-color-primary-dark: lab(50% 16 -22);
+  --ifm-color-primary-darker: lab(45% 16 -22);
+  --ifm-color-primary-darkest: lab(40% 16 -22);
+  --ifm-color-primary-light: lab(60% 16 -22);
+  --ifm-color-primary-lighter: lab(65% 16 -22);
+  --ifm-color-primary-lightest: lab(70% 16 -22);
+
+  --ifm-color-success: lab(57% -19 -12);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #a287df; /* Main purple color for dark mode */
-  --ifm-color-primary-dark: #9177c7; /* Slightly darker */
-  --ifm-color-primary-darker: #856bb8; /* Darker still */
-  --ifm-color-primary-darkest: #735aa1; /* Darkest */
-  --ifm-color-primary-light: #b29bef; /* Slightly lighter */
-  --ifm-color-primary-lighter: #c3abf7; /* Even lighter */
-  --ifm-color-primary-lightest: #d8c5fc; /* Lightest shade */
-  --docusaurus-highlighted-code-line-bg: rgba(162, 135, 223, 0.3); /* Soft purple highlight for dark mode */
+  /* Dark mode colors using LAB color space */
+  --ifm-background-color: lab(37% 8 -18);
+  --ifm-background-surface-color: lab(29% 6 -13);
+  --ifm-color-content: lab(88% 0 1);
+  --ifm-font-color-base: var(--ifm-color-content);
+  --ifm-footer-background-color: var(--ifm-background-surface-color);
+  --ifm-footer-color: var(--ifm-color-content);
+  --ifm-link-color: lab(59% 38 -1);
+  --ifm-link-hover-color: lab(75% 38 -1);
+  --ifm-hover-overlay: lab(95% 45 24 / 0.1);
+  --ifm-menu-color: lab(95% 45 24);
+  --ifm-color-secondary-contrast-background: var(--ifm-background-surface-color);
+  --docusaurus-highlighted-code-line-bg: lab(82% 29 -2);
+  
+  /* Color emphasis scale - dark mode (varying L, keeping a/b from navbar) */
+  --ifm-color-emphasis-0: lab(0% 6 -13);
+  --ifm-color-emphasis-100: lab(10% 6 -13);
+  --ifm-color-emphasis-200: lab(20% 6 -13);
+  --ifm-color-emphasis-300: lab(29% 6 -13);
+  --ifm-color-emphasis-400: lab(40% 6 -13);
+  --ifm-color-emphasis-500: lab(50% 6 -13);
+  --ifm-color-emphasis-600: lab(60% 6 -13);
+  --ifm-color-emphasis-700: lab(70% 6 -13);
+  --ifm-color-emphasis-800: lab(80% 6 -13);
+  --ifm-color-emphasis-900: lab(85% 6 -13);
+  --ifm-color-emphasis-1000: lab(88% 6 -13);
+
+  /* Primary accent colors - reddish (variants by adjusting L) */
+  --ifm-color-primary: lab(70% 46 25);
+  --ifm-color-primary-dark: lab(65% 46 25);
+  --ifm-color-primary-darker: lab(60% 46 25);
+  --ifm-color-primary-darkest: lab(55% 46 25);
+  --ifm-color-primary-light: lab(75% 46 25);
+  --ifm-color-primary-lighter: lab(80% 46 25);
+  --ifm-color-primary-lightest: lab(85% 46 25);
+}
+
+/* Text selection colors */
+::selection {
+  background-color: lab(62% 5 -9 / 0.5);
+}
+
+[data-theme='dark'] ::selection {
+  background-color: lab(82% 29 -2);
+  color: lab(48% 37 -1);
+}
+
+/* Override .footer--dark class (which is always applied due to footer style: 'dark' in config) */
+.footer--dark {
+  --ifm-footer-background-color: var(--ifm-background-surface-color);
+  --ifm-footer-color: var(--ifm-color-content);
+  --ifm-footer-link-color: var(--ifm-link-color);
+  --ifm-footer-title-color: var(--ifm-color-content);
+}
+
+[data-theme='dark'] .footer--dark {
+  --ifm-footer-background-color: var(--ifm-background-surface-color);
+  --ifm-footer-color: var(--ifm-color-content);
+  --ifm-footer-link-color: var(--ifm-link-color);
+  --ifm-footer-title-color: var(--ifm-color-content);
+}
+
+/* Override alert link colors to use normal link colors instead of alert foreground color */
+.alert {
+  --ifm-link-color: lab(49% 38 -1);
+  --ifm-link-hover-color: lab(49% 38 -1);
+  --ifm-link-decoration: underline;
+}
+
+.alert a {
+  text-decoration-color: var(--ifm-link-color);
+  -webkit-text-decoration-color: var(--ifm-link-color);
+}
+
+.alert a:hover {
+  text-decoration-color: var(--ifm-link-hover-color);
+  -webkit-text-decoration-color: var(--ifm-link-hover-color);
+}
+
+[data-theme='dark'] .alert {
+  --ifm-link-color: lab(59% 38 -1);
+  --ifm-link-hover-color: lab(75% 38 -1);
+  --ifm-link-decoration: underline;
 }
 
 /* Override Docusaurus container width constraints globally */

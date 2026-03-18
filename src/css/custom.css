@@ -165,13 +165,67 @@
 .info-box-container {
   float: right;
   margin: 0 0 1em 1em;
-  max-width: 600px;
+  max-width: 35%;
+}
+
+/* Info box styles */
+.info-box-container-large {
+  width: 100%;
+  float: none;
+  margin: 0 0 1em 0;
+}
+
+@media (min-width: 768px) {
+  .info-box-container-large {
+    float: right;
+    width: auto;
+    margin: 0 0 1em 1em;
+    max-width: 35%;
+  }
 }
 
 .info-box-image {
   display: block;
-  width: 50%;
-  margin: 0 auto; /* This centers the image */
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  .info-box-image {
+    cursor: pointer;
+  }
+
+  .info-box-container.info-box-expanded,
+  .info-box-container-large.info-box-expanded {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    float: none;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 1em;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .info-box-container.info-box-expanded .info-box-image,
+  .info-box-container-large.info-box-expanded .info-box-image {
+    max-width: 100%;
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .info-box-container.info-box-expanded .info-box-caption,
+  .info-box-container-large.info-box-expanded .info-box-caption {
+    color: var(--ifm-font-color-base);
+    margin-top: 0.75em;
+  }
 }
 
 .info-box-caption {

@@ -85,6 +85,8 @@ const config = {
     ],
   ],
 
+  clientModules: [require.resolve('./src/js/info-box-expand.js')],
+
   themeConfig: {
     // Google Discover optimization - enables large image previews in search results
     metadata: [{ name: 'robots', content: 'max-image-preview:large' }],

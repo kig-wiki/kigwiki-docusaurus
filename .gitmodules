@@ -1,0 +1,3 @@
+[submodule "publications/kigwiki-admin-publications"]
+	path = publications/kigwiki-admin-publications
+	url = https://github.com/kamen-kigu/kigwiki-admin-publications.git

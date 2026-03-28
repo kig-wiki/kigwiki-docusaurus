@@ -59,8 +59,23 @@ const config = {
           // Using / as the base path for the docs not /docs/
           routeBasePath: '/',
         },
-        // We don't have a blog
-        blog: false,
+        // blog == publications, non-publicly editable articles by various contributors.
+        // If you think you should have the option to publish publications, please open an issue or contact us.
+        // Will be mapped via git submodules so contributors have control over their own articles.
+        blog: {
+          routeBasePath: '/publications',
+          path: 'publications',
+          blogTitle: 'Kig.wiki Contributor Publications',
+          blogDescription: 'Contributor authored publications exploring Kigurumi, hadai, and related topics.',
+          showReadingTime: true,
+          editUrl: undefined,
+          remarkPlugins: [remarkSocialEmbeds],
+          feedOptions: {
+            type: ['rss', 'atom'],
+            xslt: true,
+            language: 'en',
+          },
+        },
         // Custom css for the docs
         theme: {
           customCss: [
@@ -74,12 +89,7 @@ const config = {
           changefreq: 'weekly',
           priority: 0.5,
           ignorePatterns: ['/tags/**'],
-          filename: 'sitemap.xml',
-          createSitemapItems: async (params: SitemapParams) => {
-            const {defaultCreateSitemapItems, ...rest} = params;
-            const items = await defaultCreateSitemapItems(rest);
-            return items.filter((item: {url: string}) => !item.url.includes('/page/'));
-          },
+          filename: 'sitemap.xml'
         },
       },
     ],
@@ -105,23 +115,24 @@ const config = {
         alt: 'Kigwiki Logo',
         src: 'icons/kigwiki.png',
       },
+      items: [
+        {
+          label: 'Home',
+          to: 'https://kig.wiki',
+        },
+        {
+          label: 'Get Started',
+          to: '/start/what-is-kigurumi',
+        },
+        {
+          label: 'Contributor Publications',
+          to: '/publications',
+        },
+      ],
     },
     footer: {
       style: 'dark',
       links: [
-        {
-          title: 'Docs',
-          items: [
-            {
-              label: 'Home',
-              to: '/',
-            },
-            {
-              label: 'Get Started',
-              to: '/start/what-is-kigurumi',
-            },
-          ],
-        },
         {
           title: 'Want to Contribute?',
           items: [
@@ -129,23 +140,10 @@ const config = {
               label: 'Our Github',
               href: 'https://github.com/kig-wiki/kigwiki',
             },
-          ],
-        },
-        {
-          items: [
             {
-              html: `
-              <div class="gull-wrap" aria-label="Gull">
-                <img
-                  src="/img/gull.webp"
-                  alt="Gull staring back at you"
-                  width="320"
-                  height="153"
-                  loading="lazy"
-                />
-              </div>
-            `,
-            },
+              label: 'Contributing Guide',
+              to: '/contributing',
+            }
           ],
         },
       ],

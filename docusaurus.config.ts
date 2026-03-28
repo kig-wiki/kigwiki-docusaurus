@@ -118,7 +118,8 @@ const config = {
       items: [
         {
           label: 'Home',
-          to: 'https://kig.wiki',
+          to: '/',
+          activeBaseRegex: '^/$',
         },
         {
           label: 'Get Started',
@@ -286,6 +287,24 @@ module.exports = config;
 
 // LLMs.txt functionality. 
 // I know some may not like the sound of this, but if they're gonna scrape any/all sites we might as well just dump info in a way that least impacts hosting so they can bugger off.
+async function readUtf8WhenExists(
+  filePath: string,
+  maxWaitMs = 120_000,
+  intervalMs = 50
+): Promise<string> {
+  const deadline = Date.now() + maxWaitMs;
+  for (;;) {
+    try {
+      return await fs.promises.readFile(filePath, "utf8");
+    } catch (err: any) {
+      if (err?.code !== "ENOENT" || Date.now() >= deadline) {
+        throw err;
+      }
+      await new Promise((r) => setTimeout(r, intervalMs));
+    }
+  }
+}
+
 async function pluginLlmsTxt(context: any) {
   return {
     name: "llms-txt-plugin",
@@ -314,7 +333,7 @@ async function pluginLlmsTxt(context: any) {
               if (content.includes('import { makersData }')) {
                 try {
                   const makersDataPath = path.join(siteDir, 'src', 'data', 'makers-data.ts');
-                  const makersDataContent = await fs.promises.readFile(makersDataPath, 'utf8');
+                  const makersDataContent = await readUtf8WhenExists(makersDataPath);
                   
                   // Extract the actual data array from the TypeScript file
                   const makersDataMatch = makersDataContent.match(/export const makersData: Maker\[\] = (\[[\s\S]*?\]);/);
@@ -343,7 +362,7 @@ ${maker.notes ? `- **Notes**: ${maker.notes}` : ''}
 `).join('\n')}`;
                     
                     processedContent = processedContent.replace(
-                      /import.*makersData.*\n.*<MakerCards.*\/>/s,
+                      /import.*makersData.*\n.*<MakersCards.*\/>/s,
                       makersMarkdown
                     );
                   }
@@ -356,7 +375,7 @@ ${maker.notes ? `- **Notes**: ${maker.notes}` : ''}
               if (content.includes('import { hadataiData }')) {
                 try {
                   const hadataiDataPath = path.join(siteDir, 'src', 'data', 'hadatai-data.ts');
-                  const hadataiDataContent = await fs.promises.readFile(hadataiDataPath, 'utf8');
+                  const hadataiDataContent = await readUtf8WhenExists(hadataiDataPath);
                   
                   // Extract the actual data array from the TypeScript file
                   const hadataiDataMatch = hadataiDataContent.match(/export const hadataiData: Hadatai\[\] = (\[[\s\S]*?\]);/);
@@ -366,7 +385,7 @@ ${maker.notes ? `- **Notes**: ${maker.notes}` : ''}
                     // Create a markdown representation of the hadatai data
                     const hadataiMarkdown = `# Hadatai Makers
 
-Hadatai (also known as zentai) are full-body suits that are often worn with kigurumi masks. This directory contains information about various hadatai makers, their pricing, and contact information.
+Hadatai are full-body suits that are often worn with kigurumi masks. This directory contains information about various hadatai makers, their pricing, and contact information.
 
 ## Hadatai Makers
 

@@ -371,11 +371,10 @@ export const ${exportName}: ${typeName}[] = ${JSON.stringify(data, null, 2)};
 
     async loadContent(): Promise<MakerDataContent> {
       log('Loading maker and hadatai data...');
-      
-      // Initialize currency converter
+
       const converter = getCurrencyConverter();
       await converter.loadRates();
-      
+
       const [rawMakers, rawHadatai] = await Promise.all([
         loadJsonFiles(makersDir),
         loadJsonFiles(hadataiDir),
@@ -386,21 +385,27 @@ export const ${exportName}: ${typeName}[] = ${JSON.stringify(data, null, 2)};
 
       log(`Loaded ${makers.length} makers and ${hadatai.length} hadatai entries`);
 
-      return {
-        makers,
-        hadatai,
-      };
+      const content: MakerDataContent = { makers, hadatai };
+
+      try {
+        createTypeScriptDataFiles(content);
+        log('TypeScript data files written from loadContent');
+      } catch (error) {
+        log('Error creating TypeScript data files:', error);
+        throw error;
+      }
+
+      return content;
     },
 
     async contentLoaded({ content, actions }) {
-      log('Creating data files for static import...');
-      
+      log('Creating JSON data files for bundler...');
+
       try {
         await createJsonDataFiles(actions, content);
-        createTypeScriptDataFiles(content);
-        log('Data files created successfully');
+        log('JSON data files created successfully');
       } catch (error) {
-        log('Error creating data files:', error);
+        log('Error creating JSON data files:', error);
         throw error;
       }
     },

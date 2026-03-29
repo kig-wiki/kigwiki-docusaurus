@@ -123,11 +123,11 @@ const config = {
         },
         {
           label: 'Get Started',
-          to: '/start/what-is-kigurumi',
+          to: '/start/what-is-kigurumi/',
         },
         {
           label: 'Contributor Publications',
-          to: '/publications',
+          to: '/publications/',
         },
       ],
     },
@@ -143,7 +143,7 @@ const config = {
             },
             {
               label: 'Contributing Guide',
-              to: '/contributing',
+              to: '/contributing/',
             }
           ],
         },

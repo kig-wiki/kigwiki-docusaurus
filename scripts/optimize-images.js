@@ -65,8 +65,10 @@ async function convertToWebP(inputPath, outputPath, quality = 85) {
  * Copy source images to build directory
  */
 function copySourceImages() {
-  const staticDir = path.join(__dirname, '..', 'static');
-  const docsDir = path.join(__dirname, '..', 'docs');
+  const staticDirs = [
+    path.join(__dirname, '..', 'static'),
+    path.join(__dirname, '..', '..', 'static'),
+  ];
   const buildDir = path.join(__dirname, '..', 'build');
   
   console.log('📁 Copying source images to build directory...\n');
@@ -97,13 +99,12 @@ function copySourceImages() {
   }
   
   try {
-    // Copy static images
     const buildStaticDir = path.join(buildDir, 'static');
-    if (fs.existsSync(staticDir)) {
-      copyRecursive(staticDir, buildStaticDir);
+    for (const staticDir of staticDirs) {
+      if (fs.existsSync(staticDir)) {
+        copyRecursive(staticDir, buildStaticDir);
+      }
     }
-    
-    // Copy docs images (they'll be processed by Docusaurus build)
     console.log('✓ Source images copied to build directory');
   } catch (error) {
     console.error(`❌ Failed to copy source images:`, error.message);

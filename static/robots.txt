@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /tags/
+Disallow: /tags/*
+Sitemap: https://kig.wiki/sitemap.xml

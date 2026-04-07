@@ -2,8 +2,8 @@ FROM node:24
 
 WORKDIR /app
 
-# Configure git safe directory so docusaurus and git can happyily get timestamps for sitemap.xml
-RUN git config --global --add safe.directory /app
+# Trust mounted repo paths (host UID/GID) so Git works for Docusaurus 3.10+ VCS; site may live in a subfolder of the mount
+RUN git config --global --add safe.directory '*'
 
 
 COPY package*.json ./

@@ -16,21 +16,19 @@ This infrastructure is designed to work with the content repository as a submodu
 # From the main kigwiki repository (not this one)
 git submodule update --init --recursive
 cd kigwiki-docusaurus
-docker-compose up
+docker compose up --build
 ```
 
-The Docker setup will automatically mount the content directories (`docs/`, `makers/`, `hadatai/`, `static/`) from the parent repository.
+Docker mounts the **repository root** at `/repo` and runs the site from `/repo/kigwiki-docusaurus`, so the parent folders stay where Git expects them.
 
 ## Build Process
 
-For production test builds:
+For production test builds (static output goes to `kigwiki-docusaurus/build/` on the host):
 
 ```bash
 cd kigwiki-docusaurus
-docker-compose -f docker-compose-build.yml up
+docker compose -f docker-compose-build.yml up --build
 ```
-
-This will copy all content files and build the static site in the `build/` directory.
 
 ## Contributing
 

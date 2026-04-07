@@ -1,15 +1,9 @@
+import { createSitemapItemsWithMtimeFallback } from './src/sitemap/createSitemapItemsWithMtimeFallback';
+
 const { themes: prismThemes } = require('prism-react-renderer');
 const remarkSocialEmbeds = require('./src/plugins/remark-social-embeds').default;
 const fs = require('fs');
 const path = require('path');
-
-// Add type for sitemap params
-interface SitemapParams {
-  defaultCreateSitemapItems: (params: any) => Promise<Array<{url: string}>>;
-  [key: string]: any;
-}
-
-
 
 const config = {
   title: 'Kig.wiki',
@@ -18,7 +12,6 @@ const config = {
 
   // Docusaurus Faster - enables faster build infrastructure
   future: {
-    experimental_faster: true,
     v4: true,
   },
 
@@ -37,6 +30,8 @@ const config = {
 
   // This we do need for sane cannonical paths 
   trailingSlash: true,
+  // Repo-root folders (same paths Git tracks) for VCS last-updated + sitemap lastmod
+  staticDirectories: ['static', '../static'],
   // Quality of life, perhaps worth setting stricter
   onBrokenLinks: 'warn',
   markdown: {
@@ -50,6 +45,7 @@ const config = {
       'classic',
       {
         docs: {
+          path: '../docs',
           // https://docusaurus.io/docs/sidebar if we ever need to customize the sidebar.
           sidebarPath: require.resolve('./sidebars.js'),
           // our repo url for edit links
@@ -93,7 +89,8 @@ const config = {
             '/publications/archive/**',
             '/publications/authors/**'
           ],
-          filename: 'sitemap.xml'
+          filename: 'sitemap.xml',
+          createSitemapItems: createSitemapItemsWithMtimeFallback,
         },
       },
     ],
@@ -279,6 +276,8 @@ const config = {
       require.resolve('./src/plugins/docusaurus-plugin-maker-data'),
       {
         verbose: true,
+        makersDir: '../makers',
+        hadataiDir: '../hadatai',
       },
     ],
     pluginLlmsTxt,

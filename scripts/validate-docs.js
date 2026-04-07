@@ -144,12 +144,11 @@ function main() {
     docsDir = process.argv[2];
   } else {
     const parentDocs = path.join(__dirname, '..', '..', 'docs');
-    const dockerDocs = path.join(__dirname, '..', 'docs');
-    
-    if (fs.existsSync(dockerDocs)) {
-      docsDir = dockerDocs;
-    } else if (fs.existsSync(parentDocs)) {
+    const localDocs = path.join(__dirname, '..', 'docs');
+    if (fs.existsSync(parentDocs)) {
       docsDir = parentDocs;
+    } else if (fs.existsSync(localDocs)) {
+      docsDir = localDocs;
     } else {
       docsDir = parentDocs;
     }

@@ -2,16 +2,13 @@ services:
   web:
     container_name: kigwiki-site
     build: ./
+    working_dir: /repo/kigwiki-docusaurus
     ports:
       - "3100:3000"
     volumes:
-      - ./:/app
-      - ../docs:/app/docs
-      - ../makers:/app/makers  
-      - ../hadatai:/app/hadatai
-      - ../static:/app/static
-      - /app/node_modules
-      - /app/.docusaurus
+      - ../:/repo
+      - /repo/kigwiki-docusaurus/node_modules
+      - /repo/kigwiki-docusaurus/.docusaurus
     environment:
       - NODE_ENV=development
     command: npm run start -- --host 0.0.0.0

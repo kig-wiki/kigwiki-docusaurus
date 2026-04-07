@@ -83,15 +83,15 @@ function validateFrontMatter(filePath) {
 }
 
 function main() {
-  const docsDir = path.join(__dirname, '..', 'docs');
-  
+  const parentDocs = path.join(__dirname, '..', '..', 'docs');
+  const localDocs = path.join(__dirname, '..', 'docs');
+  const docsDir = fs.existsSync(parentDocs)
+    ? parentDocs
+    : localDocs;
+
   if (!fs.existsSync(docsDir)) {
-    const rootDocsDir = path.join(__dirname, '..', '..', 'docs');
-    if (!fs.existsSync(rootDocsDir)) {
-      console.error('Docs directory not found');
-      process.exit(1);
-    }
-    return validateDirectory(rootDocsDir);
+    console.error('Docs directory not found');
+    process.exit(1);
   }
 
   return validateDirectory(docsDir);

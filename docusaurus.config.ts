@@ -313,7 +313,7 @@ async function pluginLlmsTxt(context: any) {
     name: "llms-txt-plugin",
     loadContent: async () => {
       const { siteDir } = context;
-      const contentDir = path.join(siteDir, "docs");
+      const contentDir = path.resolve(siteDir, "../docs");
       const allMd: string[] = [];
 
       // recursive function to get all md files

@@ -79,10 +79,6 @@
 /masks/visibility / 301
 /masks/visibility/ / 301
 
-# Redirect old hadatai subpages that don't have direct equivalents
-/hadatai/latex-info / 301
-/hadatai/latex-info/ / 301
-
 # Redirect old diy-mask subpages that don't have direct equivalents
 /diy-mask/eyes / 301
 /diy-mask/eyes/ / 301

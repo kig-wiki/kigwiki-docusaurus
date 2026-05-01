@@ -66,6 +66,8 @@ export const filterHadataiBySearch = (data: Hadatai[], searchTerm: string): Hada
   return data.filter(item => {
     const searchableFields = [
       item.name.toLowerCase(),
+      item.website?.toLowerCase() || '',
+      item.taobaoStore?.toLowerCase() || '',
       item.region?.toLowerCase() || '',
       item.notes?.toLowerCase() || '',
     ];
@@ -88,6 +90,8 @@ export const filterMakersBySearch = (data: Maker[], searchTerm: string): Maker[]
     const searchableFields = [
       maker.name.toLowerCase(),
       maker.alias?.toLowerCase() || '',
+      maker.website?.toLowerCase() || '',
+      maker.taobaoStore?.toLowerCase() || '',
       maker.notes?.toLowerCase() || '',
       maker.priceRange?.toLowerCase() || '',
       maker.priceTier?.toLowerCase() || '',

@@ -1,12 +1,12 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import type { Maker } from '../plugins/docusaurus-plugin-maker-data';
-import { useDebounce } from '../hooks/useDebounce';
-import LinkIcon from './shared/LinkIcon';
-import { SEARCH_DEBOUNCE_MS } from '../utils/makerSocialUtils';
-import { 
-  filterMakersBySearch, 
-  sortMakers, 
-  supportsEnglishOrdering 
+import LinksFieldGroup from './shared/LinksFieldGroup';
+import { useCardsListFilters } from '../hooks/useCardsListFilters';
+import { useSortSelectHandler } from '../hooks/useSortSelectHandler';
+import {
+  filterMakersBySearch,
+  sortMakers,
+  supportsEnglishOrdering,
 } from '../utils/filterUtils';
 import type { SortConfig } from '../utils/filterUtils';
 import { parseNotesWithLinks } from '../utils/textUtils';
@@ -19,17 +19,10 @@ interface MakersCardsProps {
 type MakerSortConfig = SortConfig<Maker>;
 
 const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
-  const hasWebsite = maker.website && typeof maker.website === 'string' && maker.website.trim() !== '';
-  
-  // More robust check for socials - ensure there are valid URLs
-  const hasSocials = maker.socials && 
-    typeof maker.socials === 'object' && 
-    Object.keys(maker.socials).length > 0 &&
-    Object.values(maker.socials).some(url => url && typeof url === 'string' && url.trim() !== '');
-  
-  const hasLinks = hasWebsite || hasSocials;
-  const hasFeatures = maker.features && typeof maker.features === 'object' && 
-                     Object.entries(maker.features).filter(([key, value]) => value === true).length > 0;
+  const hasFeatures =
+    maker.features &&
+    typeof maker.features === 'object' &&
+    Object.entries(maker.features).filter(([, value]) => value === true).length > 0;
   const hasNotes = typeof maker.notes === 'string';
 
   return (
@@ -44,19 +37,12 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
       </div>
 
       <div className="maker-card-content">
-        {hasLinks && (
-          <div className="maker-field">
-            <span className="field-label">Links:</span>
-            <div className="links-container">
-              {hasWebsite && (
-                <LinkIcon platform="website" url={maker.website!} isWebsite={true} />
-              )}
-              {hasSocials && Object.entries(maker.socials!).map(([platform, url]) => (
-                <LinkIcon key={platform} platform={platform} url={String(url)} />
-              ))}
-            </div>
-          </div>
-        )}
+        <LinksFieldGroup
+          fieldClassName="maker-field"
+          website={maker.website}
+          taobaoStore={maker.taobaoStore}
+          socials={maker.socials}
+        />
 
         {typeof maker.priceTier === 'string' && (
           <div className="maker-field inline">
@@ -100,13 +86,12 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
             <span className="field-label">Features:</span>
             <div className="features-list">
               {Object.entries(maker.features!)
-                .filter(([key, value]) => value === true)
+                .filter(([, value]) => value === true)
                 .map(([key]) => (
                   <span key={key} className="feature-badge">
                     {key}
                   </span>
-                ))
-              }
+                ))}
             </div>
           </div>
         )}
@@ -123,50 +108,28 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
 });
 
 const MakersCards: React.FC<MakersCardsProps> = memo(({ className = '', data }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showEnglishOnly, setShowEnglishOnly] = useState(false);
+  const {
+    searchTerm,
+    debouncedSearchTerm,
+    showEnglishOnly,
+    handleSearchChange,
+    handleEnglishOnlyChange,
+  } = useCardsListFilters();
   const [sortConfig, setSortConfig] = useState<MakerSortConfig>({ key: 'name', direction: 'asc' });
-  
-  // Debounce search term to avoid excessive filtering
-  const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS);
+  const handleSortChange = useSortSelectHandler(setSortConfig);
 
   const filteredAndSortedMakers = useMemo(() => {
     let filtered = data;
 
-    // Apply English ordering filter
     if (showEnglishOnly) {
       const beforeCount = filtered.length;
       filtered = filtered.filter(supportsEnglishOrdering);
       console.log(`English filter: ${beforeCount} → ${filtered.length} makers`);
     }
 
-    // Apply search filter
     filtered = filterMakersBySearch(filtered, debouncedSearchTerm);
-
-    // Apply sorting
     return sortMakers(filtered, sortConfig);
   }, [data, debouncedSearchTerm, showEnglishOnly, sortConfig]);
-
-  // Memoize event handlers to prevent unnecessary re-renders
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  }, []);
-
-  const handleEnglishOnlyChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setShowEnglishOnly(e.target.checked);
-  }, []);
-
-  const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const [key, direction] = e.target.value.split('-');
-    
-    // Validate the parsed values
-    if (key && direction && (direction === 'asc' || direction === 'desc')) {
-      setSortConfig({ 
-        key: key as keyof Maker, 
-        direction: direction as 'asc' | 'desc' 
-      });
-    }
-  }, []);
 
   return (
     <div className={`makers-cards-container ${className}`}>
@@ -183,15 +146,11 @@ const MakersCards: React.FC<MakersCardsProps> = memo(({ className = '', data }) 
 
         <div className="makers-cards-filters">
           <label className="filter-toggle">
-            <input
-              type="checkbox"
-              checked={showEnglishOnly}
-              onChange={handleEnglishOnlyChange}
-            />
+            <input type="checkbox" checked={showEnglishOnly} onChange={handleEnglishOnlyChange} />
             <span className="filter-label">English ordering only</span>
           </label>
         </div>
-        
+
         <div className="makers-cards-sort">
           <label htmlFor="sort-select">Sort by:</label>
           <select
@@ -223,7 +182,9 @@ const MakersCards: React.FC<MakersCardsProps> = memo(({ className = '', data }) 
       </div>
 
       <div className="makers-cards-info">
-        <p>Showing {filteredAndSortedMakers.length} of {data.length} makers</p>
+        <p>
+          Showing {filteredAndSortedMakers.length} of {data.length} makers
+        </p>
       </div>
     </div>
   );

@@ -506,6 +506,12 @@
   gap: 0.25rem;
 }
 
+.hadatai-field.inline {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
 .price-examples {
   display: flex;
   flex-direction: column;

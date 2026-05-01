@@ -25,7 +25,6 @@ class FileWriteError extends Error {
   }
 }
 
-// Type definitions based on migration.md
 export interface SocialLinks {
   x?: string;
   instagram?: string;
@@ -33,6 +32,7 @@ export interface SocialLinks {
   weibo?: string;
   bluesky?: string;
   tiktok?: string;
+  [platform: string]: string | undefined;
 }
 
 export interface PriceDetails {
@@ -56,6 +56,7 @@ export interface Maker {
   name: string;
   alias?: string;
   website?: string;
+  taobaoStore?: string;
   status?: 'open' | 'closed' | 'beware';
   region?: string;
   socials?: SocialLinks;
@@ -76,11 +77,14 @@ export interface Maker {
 export interface PriceExample {
   type: string;
   price: string | number;
+  currency?: string;
   link?: string;
 }
 
 export interface Hadatai {
   name: string;
+  website?: string;
+  taobaoStore?: string;
   region?: string;
   currency?: string;
   socials?: SocialLinks;
@@ -192,6 +196,7 @@ const makerDataPlugin = (context: LoadContext, options: PluginOptions = {}): Plu
         name: item.name || 'Unknown',
         alias: item.alias,
         website: item.website,
+        taobaoStore: item.taobaoStore,
         status: item.status,
         region: getRegion(item),
         socials: getSocials(item),
@@ -223,10 +228,22 @@ const makerDataPlugin = (context: LoadContext, options: PluginOptions = {}): Plu
   };
 
   // Helper function to convert price examples
-  const convertPriceExamples = (priceExamples: any[], currency: string, itemName: string, converter: any): any[] => {
+  const resolveExampleCurrency = (example: any, fallbackCurrency?: string): string | undefined => {
+    if (typeof example?.currency === 'string' && example.currency.trim() !== '') {
+      return example.currency;
+    }
+    return fallbackCurrency;
+  };
+
+  const convertPriceExamples = (priceExamples: any[], fallbackCurrency: string, itemName: string, converter: any): any[] => {
     return priceExamples.map((example: any) => {
       try {
-        const converted = converter.convertPriceString(example.price.toString(), currency);
+        const sourceCurrency = resolveExampleCurrency(example, fallbackCurrency);
+        if (!sourceCurrency) {
+          return example;
+        }
+
+        const converted = converter.convertPriceString(example.price.toString(), sourceCurrency);
         return {
           ...example,
           price: `${converted.convertedFormatted} USD (${converted.original} ${converted.originalCurrency})`
@@ -242,8 +259,7 @@ const makerDataPlugin = (context: LoadContext, options: PluginOptions = {}): Plu
   const getPriceExamples = (item: any, converter: any): any[] => {
     const priceExamples = item.priceExamples || [];
     
-    // Early return if no currency or no price examples
-    if (!item.currency || priceExamples.length === 0) {
+    if (priceExamples.length === 0) {
       return priceExamples;
     }
 
@@ -285,6 +301,8 @@ const makerDataPlugin = (context: LoadContext, options: PluginOptions = {}): Plu
     try {
       return {
         name: item.name || 'Unknown',
+        website: item.website,
+        taobaoStore: item.taobaoStore,
         region: getRegion(item),
         currency: item.currency,
         socials: getSocials(item),

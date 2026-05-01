@@ -1,6 +1,5 @@
 // Shared utilities for social media and platform handling
 
-// Constants for better maintainability
 export const SOCIAL_ICON_PATHS = {
   TWITTER: '/social_icons/x.svg',
   INSTAGRAM: '/social_icons/instagram.svg',
@@ -19,6 +18,17 @@ export const STATUS_COLORS = {
 
 export const SEARCH_DEBOUNCE_MS = 300;
 
+export const hasValidWebsite = (website: unknown): website is string =>
+  typeof website === 'string' && website.trim() !== '';
+
+export const hasSocialEntriesWithUrls = (socials: unknown): boolean =>
+  !!socials &&
+  typeof socials === 'object' &&
+  Object.keys(socials as object).length > 0 &&
+  Object.values(socials as Record<string, unknown>).some(
+    (url) => typeof url === 'string' && url.trim() !== ''
+  );
+
 // Helper function to validate URL
 export const isValidUrl = (url: unknown): url is string => {
   return typeof url === 'string' && 
@@ -32,9 +42,10 @@ export const isValidUrl = (url: unknown): url is string => {
 export const getIconPath = (platform: string): string | null => {
   const lowerPlatform = platform.toLowerCase();
   
-  // Use switch statement for better readability and performance
   switch (true) {
-    case lowerPlatform.includes('twitter') || lowerPlatform.includes('x.com'):
+    case lowerPlatform === 'x' ||
+      lowerPlatform.includes('twitter') ||
+      lowerPlatform.includes('x.com'):
       return SOCIAL_ICON_PATHS.TWITTER;
     case lowerPlatform.includes('instagram'):
       return SOCIAL_ICON_PATHS.INSTAGRAM;

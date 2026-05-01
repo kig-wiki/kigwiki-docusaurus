@@ -1,10 +1,12 @@
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import type { Hadatai } from '../plugins/docusaurus-plugin-maker-data';
 import LinksFieldGroup from './shared/LinksFieldGroup';
 import { useCardsListFilters } from '../hooks/useCardsListFilters';
 import { useSortSelectHandler } from '../hooks/useSortSelectHandler';
 import {
   filterHadataiBySearch,
+  filterHadataiByMaterialToggles,
+  normalizeHadataiMaterial,
   sortHadatai,
   supportsHadataiEnglishOrdering,
 } from '../utils/filterUtils';
@@ -18,17 +20,27 @@ interface HadataiCardsProps {
 
 type HadataiSortConfig = SortConfig<Hadatai>;
 
-const HadataiCard: React.FC<{ item: Hadatai }> = memo(({ item }) => {
-  const hasPriceExamples = item.priceExamples && item.priceExamples.length > 0;
+const HadataiCard: React.FC<{
+  item: Hadatai;
+  latexMaterialFilter: boolean;
+  fabricMaterialFilter: boolean;
+}> = memo(({ item, latexMaterialFilter, fabricMaterialFilter }) => {
+  const visiblePriceExamples = useMemo(() => {
+    const all = item.priceExamples ?? [];
+    if (latexMaterialFilter === fabricMaterialFilter) return all;
+    if (latexMaterialFilter) {
+      return all.filter((ex) => normalizeHadataiMaterial(ex.material) === 'latex');
+    }
+    return all.filter((ex) => normalizeHadataiMaterial(ex.material) === 'fabric');
+  }, [item.priceExamples, latexMaterialFilter, fabricMaterialFilter]);
+
+  const hasPriceExamples = visiblePriceExamples.length > 0;
   const hasNotes = typeof item.notes === 'string';
 
   return (
     <div className="hadatai-card">
       <div className="hadatai-card-header">
         <h3 className="hadatai-name">{item.name}</h3>
-        {typeof item.region === 'string' && (
-          <span className="region-badge">Ships from: {item.region}</span>
-        )}
       </div>
 
       <div className="hadatai-card-content">
@@ -38,6 +50,13 @@ const HadataiCard: React.FC<{ item: Hadatai }> = memo(({ item }) => {
           taobaoStore={item.taobaoStore}
           socials={item.socials}
         />
+
+        {typeof item.region === 'string' && (
+          <div className="hadatai-field inline">
+            <span className="field-label">Ships from:</span>
+            <span className="region">{item.region}</span>
+          </div>
+        )}
 
         {supportsHadataiEnglishOrdering(item) && (
           <div className="hadatai-field inline">
@@ -52,7 +71,7 @@ const HadataiCard: React.FC<{ item: Hadatai }> = memo(({ item }) => {
           <div className="hadatai-field">
             <span className="field-label">Price Examples:</span>
             <div className="price-examples">
-              {item.priceExamples!.map((example, idx) => (
+              {visiblePriceExamples.map((example, idx) => (
                 <div key={idx} className="price-example">
                   <div className="price-example-type">{example.type}</div>
                   <div className="price-example-price">
@@ -94,8 +113,18 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
     handleSearchChange,
     handleEnglishOnlyChange,
   } = useCardsListFilters();
+  const [latexOnly, setLatexOnly] = useState(true);
+  const [fabricOnly, setFabricOnly] = useState(true);
   const [sortConfig, setSortConfig] = useState<HadataiSortConfig>({ key: 'name', direction: 'asc' });
   const handleSortChange = useSortSelectHandler(setSortConfig);
+
+  const handleLatexOnlyChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setLatexOnly(e.target.checked);
+  }, []);
+
+  const handleFabricOnlyChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFabricOnly(e.target.checked);
+  }, []);
 
   const filteredAndSortedHadatai = useMemo(() => {
     let filtered = data;
@@ -106,9 +135,11 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
       console.log(`English filter: ${beforeCount} → ${filtered.length} hadatai makers`);
     }
 
+    filtered = filterHadataiByMaterialToggles(filtered, latexOnly, fabricOnly);
+
     filtered = filterHadataiBySearch(filtered, debouncedSearchTerm);
     return sortHadatai(filtered, sortConfig);
-  }, [data, debouncedSearchTerm, showEnglishOnly, sortConfig]);
+  }, [data, debouncedSearchTerm, showEnglishOnly, latexOnly, fabricOnly, sortConfig]);
 
   return (
     <div className={`hadatai-cards-container ${className}`}>
@@ -124,10 +155,22 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
         </div>
 
         <div className="hadatai-cards-filters">
-          <label className="filter-toggle">
-            <input type="checkbox" checked={showEnglishOnly} onChange={handleEnglishOnlyChange} />
-            <span className="filter-label">English ordering only</span>
-          </label>
+          <div className="hadatai-cards-filters-row">
+            <label className="filter-toggle">
+              <input type="checkbox" checked={showEnglishOnly} onChange={handleEnglishOnlyChange} />
+              <span className="filter-label">English ordering only</span>
+            </label>
+          </div>
+          <div className="hadatai-cards-filters-row">
+            <label className="filter-toggle">
+              <input type="checkbox" checked={latexOnly} onChange={handleLatexOnlyChange} />
+              <span className="filter-label">Latex Material</span>
+            </label>
+            <label className="filter-toggle">
+              <input type="checkbox" checked={fabricOnly} onChange={handleFabricOnlyChange} />
+              <span className="filter-label">Fabric Material</span>
+            </label>
+          </div>
         </div>
 
         <div className="hadatai-cards-sort">
@@ -153,7 +196,12 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
           </div>
         ) : (
           filteredAndSortedHadatai.map((item, index) => (
-            <HadataiCard key={`${item.name}-${index}`} item={item} />
+            <HadataiCard
+              key={`${item.name}-${index}`}
+              item={item}
+              latexMaterialFilter={latexOnly}
+              fabricMaterialFilter={fabricOnly}
+            />
           ))
         )}
       </div>

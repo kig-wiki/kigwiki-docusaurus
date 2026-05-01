@@ -74,7 +74,8 @@ export const filterHadataiBySearch = (data: Hadatai[], searchTerm: string): Hada
     
     const priceExamplesMatch = item.priceExamples?.some(example =>
       example.type.toLowerCase().includes(term) ||
-      example.price.toString().toLowerCase().includes(term)
+      example.price.toString().toLowerCase().includes(term) ||
+      (typeof example.material === 'string' && example.material.toLowerCase().includes(term))
     ) || false;
     
     return searchableFields.some(field => field.includes(term)) || priceExamplesMatch;
@@ -126,6 +127,22 @@ export const supportsHadataiEnglishOrdering = (hadatai: Hadatai): boolean => {
   return hadatai.englishOrdering !== false && 
          hadatai.englishOrdering !== null && 
          hadatai.englishOrdering !== undefined;
+};
+
+export const normalizeHadataiMaterial = (material: unknown): string =>
+  typeof material === 'string' ? material.trim().toLowerCase() : '';
+
+export const hadataiHasMaterial = (hadatai: Hadatai, kind: 'latex' | 'fabric'): boolean =>
+  hadatai.priceExamples?.some((ex) => normalizeHadataiMaterial(ex.material) === kind) ?? false;
+
+export const filterHadataiByMaterialToggles = (
+  data: Hadatai[],
+  latexOnly: boolean,
+  fabricOnly: boolean
+): Hadatai[] => {
+  if (latexOnly === fabricOnly) return data;
+  if (latexOnly) return data.filter((item) => hadataiHasMaterial(item, 'latex'));
+  return data.filter((item) => hadataiHasMaterial(item, 'fabric'));
 };
 
 // Helper function to extract numeric price from price strings

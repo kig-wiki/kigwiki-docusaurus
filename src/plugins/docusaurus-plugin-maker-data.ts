@@ -79,6 +79,7 @@ export interface PriceExample {
   price: string | number;
   currency?: string;
   link?: string;
+  material?: string;
 }
 
 export interface Hadatai {

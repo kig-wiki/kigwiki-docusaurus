@@ -67,12 +67,12 @@ const ContentWarningDialog: React.FC<ContentWarningDialogProps> = memo(
             </h2>
             <div className="maker-posts-dialog-body">
               <p>
-                Recent posts for makers are loaded from X (formerly Twitter). Kig.wiki does not host or moderate this
+                Recent posts for makers are loaded from X (formerly Twitter). Kig.Wiki does not host or moderate this
                 content.
               </p>
               <p>
-                These posts may include <strong>NSFW or otherwise questionable material</strong>.
-                Only continue if you are comfortable and able to consent to viewing unmoderated social media content.
+                As these are their latest posts, there is a chance it could contain <strong>NSFW or otherwise questionable material</strong>.
+                Only continue if you are comfortable and able to consent to viewing social media content as moderated by X.
               </p>
             </div>
             <div className="maker-posts-dialog-actions">
@@ -85,7 +85,7 @@ const ContentWarningDialog: React.FC<ContentWarningDialogProps> = memo(
                 className="maker-posts-btn maker-posts-btn-primary"
                 onClick={onConfirm}
               >
-                I am 18+ and consent, show posts
+                I consent, show posts
               </button>
             </div>
           </div>

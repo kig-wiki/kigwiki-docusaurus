@@ -77,6 +77,7 @@ const config = {
           customCss: [
             require.resolve('./src/css/custom.css'),
             require.resolve('./src/css/makers-cards.css'),
+            require.resolve('./src/css/maker-recent-posts.css'),
           ],
         },
         // Sitemap config self explanatory  

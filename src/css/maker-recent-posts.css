@@ -1,0 +1,328 @@
+.maker-recent-posts {
+  margin-top: 0.5rem;
+}
+
+.maker-posts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.maker-posts-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.maker-posts-btn-primary {
+  background: var(--ifm-color-primary);
+  color: #fff;
+  border-color: var(--ifm-color-primary);
+}
+
+.maker-posts-btn-primary:hover:not(:disabled) {
+  background: var(--ifm-color-primary-dark);
+  border-color: var(--ifm-color-primary-dark);
+}
+
+.maker-posts-btn-secondary {
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  border-color: var(--ifm-color-emphasis-300);
+}
+
+.maker-posts-btn-secondary:hover:not(:disabled) {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.maker-posts-trigger {
+  width: 100%;
+}
+
+.maker-posts-inline-error {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--ifm-color-danger-lighter);
+  background: var(--ifm-color-danger-lightest);
+  color: var(--ifm-color-danger-darkest);
+  font-size: 0.875rem;
+}
+
+.maker-posts-inline-error p {
+  margin: 0 0 0.5rem;
+}
+
+.maker-posts-inline-error a {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.maker-posts-dismiss-error {
+  margin-top: 0.25rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.maker-posts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.maker-posts-backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.65);
+  cursor: default;
+  pointer-events: auto;
+}
+
+.maker-posts-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 42rem);
+  max-height: min(90vh, 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+
+.maker-posts-consent {
+  padding: 1.25rem;
+}
+
+.maker-posts-dialog-title {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.maker-posts-dialog-body p {
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.maker-posts-dialog-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.maker-posts-gallery-dialog {
+  width: min(calc(100vw - 2rem), 28rem);
+  padding: 1rem;
+}
+
+.maker-posts-gallery-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.maker-posts-close-btn {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-font-color-base);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.maker-posts-close-btn:hover {
+  background: var(--ifm-color-emphasis-300);
+}
+
+.maker-posts-partial-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.maker-posts-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.maker-posts-gallery-cell {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ifm-color-emphasis-200);
+  cursor: pointer;
+}
+
+.maker-posts-gallery-cell.is-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  animation: maker-posts-shimmer 1.2s infinite;
+}
+
+@keyframes maker-posts-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.maker-posts-gallery-cell:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.maker-posts-gallery-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.maker-posts-gallery-placeholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-emphasis-200),
+    var(--ifm-color-emphasis-300)
+  );
+}
+
+.maker-posts-video-badge {
+  position: absolute;
+  right: 0.375rem;
+  bottom: 0.375rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.maker-posts-gallery-footer {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.maker-posts-profile-link {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.maker-posts-attribution {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.maker-posts-overlay-elevated {
+  z-index: 401;
+}
+
+.maker-posts-post-expanded-dialog {
+  width: min(calc(100vw - 2rem), 34rem);
+  padding: 1rem;
+}
+
+.maker-posts-twitter-embed {
+  display: flex;
+  justify-content: center;
+  min-height: 12rem;
+  overflow: hidden;
+}
+
+.maker-posts-twitter-embed .twitter-tweet {
+  margin: 0 !important;
+}
+
+.maker-posts-twitter-embed iframe {
+  max-width: 100% !important;
+}
+
+@media (min-width: 640px) {
+  .maker-posts-dialog-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .maker-posts-trigger {
+    width: auto;
+  }
+
+  .maker-posts-gallery-dialog {
+    padding: 1.25rem;
+  }
+
+  .maker-posts-gallery-grid {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .maker-posts-overlay {
+    padding: 0.75rem;
+  }
+
+  .maker-posts-consent {
+    padding: 1rem;
+  }
+
+  .maker-posts-dialog-actions .maker-posts-btn {
+    width: 100%;
+  }
+}

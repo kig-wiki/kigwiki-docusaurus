@@ -1,6 +1,8 @@
 import React, { useState, useMemo, memo } from 'react';
 import type { Maker } from '../plugins/docusaurus-plugin-maker-data';
 import LinksFieldGroup from './shared/LinksFieldGroup';
+import MakerRecentPosts from './MakerRecentPosts';
+import { isValidUrl } from '../utils/makerSocialUtils';
 import { useCardsListFilters } from '../hooks/useCardsListFilters';
 import { useSortSelectHandler } from '../hooks/useSortSelectHandler';
 import {
@@ -43,6 +45,10 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
           taobaoStore={maker.taobaoStore}
           socials={maker.socials}
         />
+
+        {maker.socials?.x && isValidUrl(maker.socials.x) && (
+          <MakerRecentPosts makerName={maker.name} xProfileUrl={maker.socials.x} />
+        )}
 
         {typeof maker.priceTier === 'string' && (
           <div className="maker-field inline">

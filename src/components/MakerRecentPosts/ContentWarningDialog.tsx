@@ -1,0 +1,101 @@
+import React, { memo, useCallback, useEffect, useId, useRef } from 'react';
+import ModalPortal from './ModalPortal';
+import { useModalBodyLock } from './useModalBodyLock';
+
+interface ContentWarningDialogProps {
+  open: boolean;
+  makerName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const ContentWarningDialog: React.FC<ContentWarningDialogProps> = memo(
+  ({ open, makerName, onConfirm, onCancel }) => {
+    const titleId = useId();
+    const confirmRef = useRef<HTMLButtonElement>(null);
+
+    useModalBodyLock(open);
+
+    useEffect(() => {
+      if (!open) {
+        return;
+      }
+
+      confirmRef.current?.focus();
+
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          onCancel();
+        }
+      };
+
+      window.addEventListener('keydown', onKeyDown);
+      return () => {
+        window.removeEventListener('keydown', onKeyDown);
+      };
+    }, [open, onCancel]);
+
+    const handleBackdropClick = useCallback(
+      (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        onCancel();
+      },
+      [onCancel]
+    );
+
+    if (!open) {
+      return null;
+    }
+
+    return (
+      <ModalPortal>
+        <div className="maker-posts-overlay">
+          <button
+            type="button"
+            className="maker-posts-backdrop"
+            onClick={handleBackdropClick}
+            aria-label="Cancel"
+          />
+          <div
+            className="maker-posts-dialog maker-posts-consent"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+          >
+            <h2 id={titleId} className="maker-posts-dialog-title">
+              Content warning
+            </h2>
+            <div className="maker-posts-dialog-body">
+              <p>
+                Recent posts for <strong>{makerName}</strong> are loaded from X through a third-party
+                service called <strong>FxTwitter</strong>. Kig.wiki does not host or moderate this
+                content.
+              </p>
+              <p>
+                These posts may include <strong>NSFW or otherwise questionable material</strong>.
+                Only continue if you are comfortable viewing unmoderated social media content.
+              </p>
+            </div>
+            <div className="maker-posts-dialog-actions">
+              <button type="button" className="maker-posts-btn maker-posts-btn-secondary" onClick={onCancel}>
+                Cancel
+              </button>
+              <button
+                ref={confirmRef}
+                type="button"
+                className="maker-posts-btn maker-posts-btn-primary"
+                onClick={onConfirm}
+              >
+                I understand, show posts
+              </button>
+            </div>
+          </div>
+        </div>
+      </ModalPortal>
+    );
+  }
+);
+
+ContentWarningDialog.displayName = 'ContentWarningDialog';
+
+export default ContentWarningDialog;

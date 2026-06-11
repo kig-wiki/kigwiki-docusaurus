@@ -83,7 +83,10 @@ const TwitterPostEmbed: React.FC<TwitterPostEmbedProps> = memo(({ tweetUrl }) =>
         data-lang="en"
         data-conversation="none"
       >
-        <a href={tweetUrl}>Loading post from X…</a>
+        <p className="maker-posts-twitter-embed-loading" role="status">
+          <span className="maker-posts-twitter-embed-spinner" aria-hidden="true" />
+          <a href={tweetUrl}>Loading post from X…</a>
+        </p>
       </blockquote>
     </div>
   );

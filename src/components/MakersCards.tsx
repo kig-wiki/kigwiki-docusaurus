@@ -153,7 +153,7 @@ const MakersCards: React.FC<MakersCardsProps> = memo(({ className = '', data }) 
         <div className="makers-cards-filters">
           <label className="filter-toggle">
             <input type="checkbox" checked={showEnglishOnly} onChange={handleEnglishOnlyChange} />
-            <span className="filter-label">English ordering only</span>
+            <span className="filter-label">English ordering</span>
           </label>
         </div>
 

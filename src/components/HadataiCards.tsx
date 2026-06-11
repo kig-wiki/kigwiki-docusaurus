@@ -158,7 +158,7 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
           <div className="hadatai-cards-filters-row">
             <label className="filter-toggle">
               <input type="checkbox" checked={showEnglishOnly} onChange={handleEnglishOnlyChange} />
-              <span className="filter-label">English ordering only</span>
+              <span className="filter-label">English ordering</span>
             </label>
           </div>
           <div className="hadatai-cards-filters-row">

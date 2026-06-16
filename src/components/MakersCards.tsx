@@ -1,7 +1,7 @@
 import React, { useState, useMemo, memo } from 'react';
 import type { Maker } from '../plugins/docusaurus-plugin-maker-data';
 import LinksFieldGroup from './shared/LinksFieldGroup';
-import MakerRecentPosts from './MakerRecentPosts';
+import MakerRecentPosts from './MakerRecentPosts/deferred';
 import { isValidUrl } from '../utils/makerSocialUtils';
 import { useCardsListFilters } from '../hooks/useCardsListFilters';
 import { useSortSelectHandler } from '../hooks/useSortSelectHandler';

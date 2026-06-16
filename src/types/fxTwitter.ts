@@ -38,9 +38,17 @@ export interface GalleryPost {
   posterUrl?: string;
 }
 
+export interface GalleryPageFetchResult {
+  posts: GalleryPost[];
+  nextCursor: string | null;
+  exhausted: boolean;
+}
+
 export interface FxTwitterCacheEntry {
   fetchedAt: number;
   posts: GalleryPost[];
+  nextCursor: string | null;
+  exhausted: boolean;
 }
 
 export interface FxTwitterFetchError {

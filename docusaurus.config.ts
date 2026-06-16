@@ -77,7 +77,6 @@ const config = {
           customCss: [
             require.resolve('./src/css/custom.css'),
             require.resolve('./src/css/makers-cards.css'),
-            require.resolve('./src/css/maker-recent-posts.css'),
           ],
         },
         // Sitemap config self explanatory  
@@ -246,7 +245,7 @@ const config = {
     [
       require.resolve('docusaurus-lunr-search'),
       {
-        languages: ['en', 'ja'],
+        languages: ['en'],
       },
     ],
     [
@@ -282,6 +281,7 @@ const config = {
       },
     ],
     pluginLlmsTxt,
+    require.resolve('@docusaurus/plugin-deflate'),
   ],
 
 

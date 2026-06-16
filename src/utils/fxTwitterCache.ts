@@ -4,7 +4,7 @@ export const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 export const CONSENT_KEY = 'kigwiki-x-posts-consent-v1';
 
 function cacheKey(handle: string): string {
-  return `kigwiki-fxtwitter-v4:${handle.toLowerCase()}`;
+  return `kigwiki-fxtwitter-v5:${handle.toLowerCase()}`;
 }
 
 export function hasContentConsent(): boolean {
@@ -23,33 +23,69 @@ export function setContentConsent(): void {
   }
 }
 
-export function getCachedPosts(handle: string): GalleryPost[] | null {
+function parseCacheEntry(raw: string): FxTwitterCacheEntry | null {
+  const entry = JSON.parse(raw) as FxTwitterCacheEntry;
+  if (!entry?.fetchedAt || !Array.isArray(entry.posts)) {
+    return null;
+  }
+
+  if (Date.now() - entry.fetchedAt >= CACHE_TTL_MS) {
+    return null;
+  }
+
+  return {
+    fetchedAt: entry.fetchedAt,
+    posts: entry.posts,
+    nextCursor: entry.nextCursor ?? null,
+    exhausted: entry.exhausted ?? false,
+  };
+}
+
+export function getCachedPosts(handle: string): FxTwitterCacheEntry | null {
   try {
     const raw = localStorage.getItem(cacheKey(handle));
     if (!raw) {
       return null;
     }
 
-    const entry = JSON.parse(raw) as FxTwitterCacheEntry;
-    if (!entry?.fetchedAt || !Array.isArray(entry.posts)) {
-      return null;
-    }
-
-    if (Date.now() - entry.fetchedAt >= CACHE_TTL_MS) {
-      return null;
-    }
-
-    return entry.posts;
+    return parseCacheEntry(raw);
   } catch {
     return null;
   }
 }
 
-export function setCachedPosts(handle: string, posts: GalleryPost[]): void {
+export function setCachedPosts(
+  handle: string,
+  posts: GalleryPost[],
+  nextCursor: string | null,
+  exhausted: boolean
+): void {
   try {
     const entry: FxTwitterCacheEntry = {
       fetchedAt: Date.now(),
       posts,
+      nextCursor,
+      exhausted,
+    };
+    localStorage.setItem(cacheKey(handle), JSON.stringify(entry));
+  } catch {
+    // Private browsing or quota exceeded
+  }
+}
+
+export function updateCachedPosts(
+  handle: string,
+  posts: GalleryPost[],
+  nextCursor: string | null,
+  exhausted: boolean
+): void {
+  try {
+    const existing = getCachedPosts(handle);
+    const entry: FxTwitterCacheEntry = {
+      fetchedAt: existing?.fetchedAt ?? Date.now(),
+      posts,
+      nextCursor,
+      exhausted,
     };
     localStorage.setItem(cacheKey(handle), JSON.stringify(entry));
   } catch {

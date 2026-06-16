@@ -2,10 +2,11 @@ import type {
   FxTwitterFetchError,
   FxTwitterMediaResponse,
   FxTwitterStatus,
+  GalleryPageFetchResult,
   GalleryPost,
 } from '../types/fxTwitter';
 
-export const DISPLAY_COUNT = 9;
+export const POSTS_PER_PAGE = 9;
 export const INITIAL_FETCH_COUNT = 20;
 export const MAX_EXTRA_PAGES = 2;
 const API_BASE = 'https://api.fxtwitter.com';
@@ -45,6 +46,14 @@ function mapApiError(response: Response, body: FxTwitterMediaResponse): FxTwitte
       kind: 'rate_limit',
       message:
         'FxTwitter (the third-party service we use to load X posts) is temporarily rate-limiting requests. Please view this account directly on X.',
+    };
+  }
+
+  if (response.status === 503 || response.status >= 500) {
+    return {
+      kind: 'api_error',
+      message:
+        'FxTwitter is not responding right now. Please try again in a moment or view this account directly on X.',
     };
   }
 
@@ -116,45 +125,70 @@ function collectEligiblePosts(results: FxTwitterStatus[]): GalleryPost[] {
   return posts;
 }
 
-export async function fetchMakerGalleryPosts(handle: string): Promise<GalleryPost[]> {
+export async function fetchMakerGalleryPage(
+  handle: string,
+  options: {
+    cursor?: string;
+    targetCount?: number;
+    excludeIds?: Set<string>;
+  } = {}
+): Promise<GalleryPageFetchResult> {
+  const targetCount = options.targetCount ?? POSTS_PER_PAGE;
+  const excludeIds = options.excludeIds ?? new Set<string>();
   const collected: GalleryPost[] = [];
-  const seenIds = new Set<string>();
-  let cursor: string | undefined;
-
-  const addUnique = (posts: GalleryPost[]) => {
-    for (const post of posts) {
-      if (seenIds.has(post.id)) {
-        continue;
-      }
-      seenIds.add(post.id);
-      collected.push(post);
-      if (collected.length >= DISPLAY_COUNT) {
-        break;
-      }
-    }
-  };
-
+  let cursor = options.cursor;
   let page = 0;
-  while (collected.length < DISPLAY_COUNT && page <= MAX_EXTRA_PAGES) {
+  let exhausted = false;
+
+  while (collected.length < targetCount && page <= MAX_EXTRA_PAGES) {
     const body = await fetchMediaPage(
       handle,
       INITIAL_FETCH_COUNT,
-      page === 0 ? undefined : cursor
+      page === 0 ? cursor : cursor
     );
 
     const results = body.results ?? [];
-    addUnique(collectEligiblePosts(results));
+    for (const post of collectEligiblePosts(results)) {
+      if (excludeIds.has(post.id)) {
+        continue;
+      }
+      collected.push(post);
+      if (collected.length >= targetCount) {
+        break;
+      }
+    }
 
-    const nextCursor = body.cursor?.bottom ?? undefined;
-    if (!nextCursor || collected.length >= DISPLAY_COUNT || results.length === 0) {
+    const nextCursor = body.cursor?.bottom ?? null;
+    if (!nextCursor || results.length === 0) {
+      exhausted = true;
       break;
+    }
+
+    if (collected.length >= targetCount) {
+      return {
+        posts: collected.slice(0, targetCount),
+        nextCursor,
+        exhausted: false,
+      };
     }
 
     cursor = nextCursor;
     page += 1;
   }
 
-  return collected.slice(0, DISPLAY_COUNT);
+  if (collected.length < targetCount) {
+    exhausted = true;
+  }
+
+  return {
+    posts: collected,
+    nextCursor: exhausted ? null : cursor ?? null,
+    exhausted,
+  };
+}
+
+export async function fetchMakerGalleryPosts(handle: string): Promise<GalleryPageFetchResult> {
+  return fetchMakerGalleryPage(handle);
 }
 
 export function isFxTwitterFetchError(error: unknown): error is FxTwitterFetchError {

@@ -171,6 +171,10 @@
   gap: 0.75rem;
 }
 
+.maker-recent-posts-slot {
+  min-height: 0;
+}
+
 .maker-field {
   display: flex;
   flex-direction: column;

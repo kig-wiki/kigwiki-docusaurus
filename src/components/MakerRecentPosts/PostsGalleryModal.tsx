@@ -10,12 +10,35 @@ interface PostsGalleryModalProps {
   makerName: string;
   profileUrl: string;
   posts: GalleryPost[];
+  pageIndex: number;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
+  isLoadingMore: boolean;
+  loadMoreError: string | null;
   partialResultsNote: string | null;
   onClose: () => void;
+  onPreviousPage: () => void;
+  onNextPage: () => void;
+  onDismissLoadMoreError: () => void;
 }
 
 const PostsGalleryModal: React.FC<PostsGalleryModalProps> = memo(
-  ({ open, makerName, profileUrl, posts, partialResultsNote, onClose }) => {
+  ({
+    open,
+    makerName,
+    profileUrl,
+    posts,
+    pageIndex,
+    canGoPrevious,
+    canGoNext,
+    isLoadingMore,
+    loadMoreError,
+    partialResultsNote,
+    onClose,
+    onPreviousPage,
+    onNextPage,
+    onDismissLoadMoreError,
+  }) => {
     const titleId = useId();
     const closeRef = useRef<HTMLButtonElement>(null);
     const [expandedPost, setExpandedPost] = useState<GalleryPost | null>(null);
@@ -36,8 +59,24 @@ const PostsGalleryModal: React.FC<PostsGalleryModalProps> = memo(
       closeRef.current?.focus();
 
       const onKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Escape' && !expandedPost) {
+        if (expandedPost) {
+          return;
+        }
+
+        if (event.key === 'Escape') {
           onClose();
+          return;
+        }
+
+        if (event.key === 'ArrowLeft' && canGoPrevious && !isLoadingMore) {
+          event.preventDefault();
+          onPreviousPage();
+          return;
+        }
+
+        if (event.key === 'ArrowRight' && canGoNext && !isLoadingMore) {
+          event.preventDefault();
+          onNextPage();
         }
       };
 
@@ -45,7 +84,16 @@ const PostsGalleryModal: React.FC<PostsGalleryModalProps> = memo(
       return () => {
         window.removeEventListener('keydown', onKeyDown);
       };
-    }, [open, onClose, expandedPost]);
+    }, [
+      open,
+      onClose,
+      expandedPost,
+      canGoPrevious,
+      canGoNext,
+      isLoadingMore,
+      onPreviousPage,
+      onNextPage,
+    ]);
 
     const handleBackdropClick = useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -99,11 +147,70 @@ const PostsGalleryModal: React.FC<PostsGalleryModalProps> = memo(
 
             {partialResultsNote && <p className="maker-posts-partial-note">{partialResultsNote}</p>}
 
-            <div className="maker-posts-gallery-grid">
-              {posts.map((post) => (
-                <GalleryCell key={post.id} post={post} onPostClick={handlePostClick} />
-              ))}
+            {loadMoreError && (
+              <div className="maker-posts-gallery-load-error" role="alert">
+                <p>{loadMoreError}</p>
+                <button
+                  type="button"
+                  className="maker-posts-dismiss-error"
+                  onClick={onDismissLoadMoreError}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            <div className="maker-posts-gallery-nav">
+              <button
+                type="button"
+                className={`maker-posts-gallery-nav-btn${canGoPrevious ? '' : ' is-nav-hidden'}`}
+                onClick={onPreviousPage}
+                disabled={!canGoPrevious || isLoadingMore}
+                aria-label="Previous posts"
+                aria-hidden={!canGoPrevious}
+                tabIndex={canGoPrevious ? 0 : -1}
+              >
+                ‹
+              </button>
+
+              <div
+                className={`maker-posts-gallery-grid${isLoadingMore ? ' is-loading-more' : ''}`}
+                aria-busy={isLoadingMore}
+                aria-live="polite"
+              >
+                {posts.map((post) => (
+                  <GalleryCell key={post.id} post={post} onPostClick={handlePostClick} />
+                ))}
+                {isLoadingMore &&
+                  Array.from({ length: Math.max(0, 9 - posts.length) }).map((_, index) => (
+                    <div
+                      key={`loading-${index}`}
+                      className="maker-posts-gallery-cell maker-posts-gallery-cell-skeleton"
+                      aria-hidden="true"
+                    />
+                  ))}
+              </div>
+
+              <button
+                type="button"
+                className={`maker-posts-gallery-nav-btn${canGoNext || isLoadingMore ? '' : ' is-nav-hidden'}`}
+                onClick={onNextPage}
+                disabled={!canGoNext || isLoadingMore}
+                aria-label="Load more posts"
+                aria-busy={isLoadingMore}
+                aria-hidden={!canGoNext && !isLoadingMore}
+                tabIndex={canGoNext || isLoadingMore ? 0 : -1}
+              >
+                ›
+              </button>
             </div>
+
+            {(pageIndex > 0 || canGoNext || isLoadingMore) && (
+              <p className="maker-posts-gallery-page-indicator" aria-live="polite">
+                Page {pageIndex + 1}
+                {isLoadingMore ? ' · Loading…' : ''}
+              </p>
+            )}
 
             <div className="maker-posts-gallery-footer">
               <a
@@ -115,7 +222,7 @@ const PostsGalleryModal: React.FC<PostsGalleryModalProps> = memo(
                 View full profile on X
               </a>
               <p className="maker-posts-attribution">
-                Tap a tile to expand a post.
+                Tap a tile to expand a post. Use the arrows to browse more posts.
               </p>
             </div>
           </div>

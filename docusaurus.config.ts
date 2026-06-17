@@ -281,7 +281,6 @@ const config = {
       },
     ],
     pluginLlmsTxt,
-    require.resolve('@docusaurus/plugin-deflate'),
   ],
 
 

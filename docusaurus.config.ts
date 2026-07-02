@@ -315,6 +315,40 @@ async function pluginLlmsTxt(context: any) {
       const { siteDir } = context;
       const contentDir = path.resolve(siteDir, "../docs");
       const allMd: string[] = [];
+      const markdownBySlug: Record<string, string> = {};
+      const markdownByDocKey: Record<string, string> = {};
+      const routePathByDocKey: Record<string, string> = {};
+
+      const normalizeDocsSlug = (value: string): string => {
+        const withoutQuotes = value.trim().replace(/^['"]|['"]$/g, "");
+        if (withoutQuotes === "/" || withoutQuotes === "") {
+          return "/";
+        }
+        return `/${withoutQuotes.replace(/^\/+|\/+$/g, "")}/`;
+      };
+
+      const getFrontmatterValue = (markdown: string, key: string): string | null => {
+        const frontmatterMatch = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+        if (!frontmatterMatch) {
+          return null;
+        }
+        const valueMatch = frontmatterMatch[1].match(new RegExp(`^\\s*${key}:\\s*(.+)\\s*$`, "m"));
+        return valueMatch ? valueMatch[1].trim().replace(/^['"]|['"]$/g, "") : null;
+      };
+
+      const getSlugFromFrontmatter = (markdown: string): string | null => {
+        const slug = getFrontmatterValue(markdown, "slug");
+        return slug ? normalizeDocsSlug(slug) : null;
+      };
+
+      const getDocKeyForFile = (fullPath: string, content: string): string => {
+        const relPath = path.relative(contentDir, fullPath).replace(/\.md$/i, "").replace(/\\/g, "/");
+        const folder = path.dirname(relPath);
+        const fileBase = path.basename(relPath);
+        const defaultId = fileBase.replace(/^\d+-/, "");
+        const docId = getFrontmatterValue(content, "id") || defaultId;
+        return folder === "." ? docId : `${folder}/${docId}`;
+      };
 
       // recursive function to get all md files
       const getMdFiles = async (dir: string) => {
@@ -327,11 +361,10 @@ async function pluginLlmsTxt(context: any) {
           } else if (entry.name.endsWith(".md")) {
             const content = await fs.promises.readFile(fullPath, "utf8");
             
+            let processedContent = content;
+
             // Check if this is a makers or hadatai page with React components
             if (content.includes('import { makersData }') || content.includes('import { hadataiData }')) {
-              // Replace React component usage with actual data
-              let processedContent = content;
-              
               // Handle makers data
               if (content.includes('import { makersData }')) {
                 try {
@@ -412,20 +445,36 @@ ${hadatai.notes ? `- **Notes**: ${hadatai.notes}` : ''}
                   console.warn('Could not process hadatai data:', error);
                 }
               }
-              
-              allMd.push(processedContent);
-            } else {
-              allMd.push(content);
+            }
+            allMd.push(processedContent);
+            const pageSlug = getSlugFromFrontmatter(processedContent);
+            const docKey = getDocKeyForFile(fullPath, processedContent);
+            markdownByDocKey[docKey] = processedContent;
+            if (pageSlug) {
+              markdownBySlug[pageSlug] = processedContent;
+              routePathByDocKey[docKey] = pageSlug;
             }
           }
         }
       };
 
       await getMdFiles(contentDir);
-      return { allMd };
+      return { allMd, markdownBySlug, markdownByDocKey, routePathByDocKey };
     },
     postBuild: async ({ content, routes, outDir }: { content: any; routes: any; outDir: string }) => {
-      const { allMd } = content as { allMd: string[] };
+      const { allMd, markdownByDocKey, routePathByDocKey } = content as {
+        allMd: string[];
+        markdownBySlug: Record<string, string>;
+        markdownByDocKey: Record<string, string>;
+        routePathByDocKey: Record<string, string>;
+      };
+
+      const normalizeRoutePath = (value: string): string => {
+        if (!value || value === "/") {
+          return "/";
+        }
+        return `/${value.replace(/^\/+|\/+$/g, "")}/`;
+      };
 
       // Write concatenated MD content
       const concatenatedPath = path.join(outDir, "llms-full.txt");
@@ -456,6 +505,30 @@ ${hadatai.notes ? `- **Notes**: ${hadatai.notes}` : ''}
       const docsRecords = Object.entries(currentVersionDocsRoutes).map(([path, record]) => {
         return `- [${record.title}](${path}): ${record.description}`;
       });
+
+      const writeMarkdownFiles = Object.entries(currentVersionDocsRoutes).map(async ([docKey, record]) => {
+        const markdownContent = markdownByDocKey[docKey];
+        if (!markdownContent) {
+          console.warn(`[llms-txt-plugin] No markdown source found for doc key ${docKey}`);
+          return;
+        }
+
+        const recordPath = (record as { permalink?: string; slug?: string }).permalink
+          ?? (record as { permalink?: string; slug?: string }).slug;
+        const normalizedRoutePath = routePathByDocKey[docKey]
+          ?? (recordPath ? normalizeRoutePath(recordPath) : null);
+        if (!normalizedRoutePath) {
+          console.warn(`[llms-txt-plugin] No route path found for doc key ${docKey}`);
+          return;
+        }
+
+        const outputPath = normalizedRoutePath === "/"
+          ? path.join(outDir, "index.md")
+          : path.join(outDir, normalizedRoutePath.replace(/^\/|\/$/g, ""), "index.md");
+        await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
+        await fs.promises.writeFile(outputPath, markdownContent);
+      });
+      await Promise.all(writeMarkdownFiles);
 
       // Build up llms.txt file
       const llmsTxt = `# ${context.siteConfig.title}\n\n## Docs\n\n${docsRecords.join("\n")}`;

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/icons/*",
+    "/img/*",
+    "/search/*",
+    "/*.js",
+    "/*.css",
+    "/*.map",
+    "/*.png",
+    "/*.jpg",
+    "/*.jpeg",
+    "/*.gif",
+    "/*.webp",
+    "/*.svg",
+    "/*.ico",
+    "/*.woff",
+    "/*.woff2",
+    "/*.xml",
+    "/*.txt",
+    "/*.json",
+    "/*.webmanifest"
+  ]
+}

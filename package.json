@@ -24,12 +24,12 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md,mdx,json}\""
   },
   "dependencies": {
-    "@docusaurus/core": "^3.10.1",
-    "@docusaurus/faster": "^3.10.1",
-    "@docusaurus/plugin-pwa": "^3.10.1",
-    "@docusaurus/preset-classic": "^3.10.1",
+    "@docusaurus/core": "^3.10.2",
+    "@docusaurus/faster": "^3.10.2",
+    "@docusaurus/plugin-pwa": "^3.10.2",
+    "@docusaurus/preset-classic": "^3.10.2",
     "@mdx-js/react": "^3.1.1",
-    "caniuse-lite": "^1.0.30001800",
+    "caniuse-lite": "^1.0.30001806",
     "clsx": "^2.1.1",
     "docusaurus-lunr-search": "^3.6.1",
     "prism-react-renderer": "^2.4.1",
@@ -37,12 +37,12 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.10.1",
-    "@docusaurus/tsconfig": "^3.10.1",
-    "@docusaurus/types": "^3.10.1",
+    "@docusaurus/module-type-aliases": "^3.10.2",
+    "@docusaurus/tsconfig": "^3.10.2",
+    "@docusaurus/types": "^3.10.2",
     "baseline-browser-mapping": "^2.10.40",
     "eslint-plugin-mdx": "^3.8.1",
-    "prettier": "^3.9.4",
+    "prettier": "^3.9.5",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3"
   },

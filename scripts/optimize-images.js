@@ -139,6 +139,12 @@ async function optimizeImages() {
   for (const imagePath of buildImages) {
     const ext = path.extname(imagePath).toLowerCase();
     const basename = path.basename(imagePath, ext);
+
+    // iOS Add to Home Screen expects a real PNG for apple-touch-icon
+    if (basename === 'apple-touch-icon') {
+      console.log(`⏭️  Skipping ${path.basename(imagePath)} (apple-touch-icon must stay PNG)`);
+      continue;
+    }
     
     // Skip if already a .webp file
     if (ext === '.webp') {

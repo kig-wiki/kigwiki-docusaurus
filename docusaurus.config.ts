@@ -114,7 +114,7 @@ const config = {
       title: 'Kigwiki',
       logo: {
         alt: 'Kigwiki Logo',
-        src: 'icons/kigwiki.png',
+        src: 'icons/kigwiki.webp',
       },
       items: [
         {
@@ -161,25 +161,25 @@ const config = {
         attributes: {
           rel: 'apple-touch-icon',
           sizes: '180x180',
-          href: '/icons/apple-touch-icon.png',
+          href: '/icons/apple-touch-icon.webp',
         },
       },
       {
         tagName: 'link',
         attributes: {
           rel: 'icon',
-          type: 'image/png',
+          type: 'image/webp',
           sizes: '32x32',
-          href: '/icons/favicon-32x32.png',
+          href: '/icons/favicon-32x32.webp',
         },
       },
       {
         tagName: 'link',
         attributes: {
           rel: 'icon',
-          type: 'image/png',
+          type: 'image/webp',
           sizes: '16x16',
-          href: '/icons/favicon-16x16.png',
+          href: '/icons/favicon-16x16.webp',
         },
       },
       {
@@ -223,8 +223,8 @@ const config = {
           '@type': 'ImageObject',
           inLanguage: 'en-US',
           '@id': 'https://kig.wiki/#logo',
-          url: 'https://kig.wiki/icons/kigwiki.png',
-          contentUrl: 'https://kig.wiki/icons/kigwiki.png',
+          url: 'https://kig.wiki/icons/kigwiki.webp',
+          contentUrl: 'https://kig.wiki/icons/kigwiki.webp',
           width: 512,
           height: 512,
         },
@@ -261,7 +261,7 @@ const config = {
           {
             tagName: 'link',
             rel: 'icon',
-            href: '/icons/kigwiki.png',
+            href: '/icons/kigwiki.webp',
           },
           {
             tagName: 'meta',

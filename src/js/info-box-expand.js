@@ -1,17 +1,22 @@
 import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
 
 const DEBOUNCE_MS = 320;
+const EXPANDED_SELECTOR =
+  '.info-box-container.info-box-expanded, .info-box-container-large.info-box-expanded';
+
+function closeInfoBox(container) {
+  container.classList.remove('info-box-expanded');
+  document.body.style.overflow = '';
+}
 
 function initInfoBoxExpand() {
   let lastExpandTime = 0;
 
   document.addEventListener('click', (e) => {
-    const expandedContainer = e.target.closest(
-      '.info-box-container.info-box-expanded, .info-box-container-large.info-box-expanded'
-    );
+    const expandedContainer = e.target.closest(EXPANDED_SELECTOR);
 
-    if (e.target === expandedContainer) {
-      expandedContainer.classList.remove('info-box-expanded');
+    if (expandedContainer && e.target === expandedContainer) {
+      closeInfoBox(expandedContainer);
       return;
     }
 
@@ -22,11 +27,18 @@ function initInfoBoxExpand() {
 
     if (container.classList.contains('info-box-expanded')) {
       if (Date.now() - lastExpandTime < DEBOUNCE_MS) return;
+      closeInfoBox(container);
+      return;
     }
-    container.classList.toggle('info-box-expanded');
-    if (container.classList.contains('info-box-expanded')) {
-      lastExpandTime = Date.now();
-    }
+
+    container.classList.add('info-box-expanded');
+    document.body.style.overflow = 'hidden';
+    lastExpandTime = Date.now();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll(EXPANDED_SELECTOR).forEach(closeInfoBox);
   });
 }
 

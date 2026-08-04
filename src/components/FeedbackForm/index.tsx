@@ -175,7 +175,7 @@ export default function FeedbackForm(): React.JSX.Element {
   if (submitState === 'success') {
     return (
       <p className={`${styles.status} ${styles.statusSuccess}`} role="status">
-        Thanks — your message was received. We may not reply to every submission, but we do read
+        Thanks - your message was received. We may not reply to every submission, but we do read
         them.
       </p>
     );
@@ -188,7 +188,7 @@ export default function FeedbackForm(): React.JSX.Element {
           Name <span aria-hidden="true">(optional)</span>
         </label>
         <p className={styles.hint} id={`${nameId}-hint`}>
-          Leave blank to stay anonymous — a name is not required.
+          Leave blank to stay anonymous - a name is not required.
         </p>
         <input
           id={nameId}

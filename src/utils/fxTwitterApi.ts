@@ -69,7 +69,7 @@ function mapApiError(response: Response, body: FxTwitterMediaResponse): FxTwitte
     kind: 'api_error',
     message:
       body.message ??
-      'FxTwitter could not load posts right now. This is not a Kig.wiki issue — please try viewing the account on X directly.',
+      'FxTwitter could not load posts right now. This is not a Kig.wiki issue - please try viewing the account on X directly.',
   };
 }
 

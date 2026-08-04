@@ -38,8 +38,8 @@ The `/feedback` page posts to a Cloudflare Pages Function at `functions/api/feed
 
 Set when building the Docusaurus site so the widget can render:
 
-| Variable | Cloudflare type | Notes |
-| --- | --- | --- |
+| Variable             | Cloudflare type            | Notes                                                                                                                        |
+| -------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `TURNSTILE_SITE_KEY` | **Plain text** (build env) | Public widget site key. Wired via `customFields.turnstileSiteKey` in `docusaurus.config.ts`. Safe to expose in the built JS. |
 
 Local Docker Compose sets Cloudflare’s **always-pass dummy** site key (`1x00000000000000000000AA`) automatically so the widget renders without your real production key. Dev mode also falls back to that dummy if the env var is unset.
@@ -50,12 +50,12 @@ Submitting still needs a running Pages Function + secrets; local UI-only testing
 
 Configure these as Cloudflare Pages **Encrypted secrets** for Production (and Preview if you test there). Never commit them.
 
-| Variable | Cloudflare type | Purpose |
-| --- | --- | --- |
-| `TURNSTILE_SECRET_KEY` | **Secret** | Turnstile siteverify secret (dummy always-pass: `1x0000000000000000000000000000000AA`) |
-| `DISCORD_WEBHOOK_URL` | **Secret** | Discord incoming webhook URL for the feedback channel |
+| Variable               | Cloudflare type | Purpose                                                                                |
+| ---------------------- | --------------- | -------------------------------------------------------------------------------------- |
+| `TURNSTILE_SECRET_KEY` | **Secret**      | Turnstile siteverify secret (dummy always-pass: `1x0000000000000000000000000000000AA`) |
+| `DISCORD_WEBHOOK_URL`  | **Secret**      | Discord incoming webhook URL for the feedback channel                                  |
 
-In the Pages dashboard: **Settings → Environment variables** — use type **Text** for `TURNSTILE_SITE_KEY` (Build environment), and type **Secret** for the other two (Runtime / Production).
+In the Pages dashboard: **Settings → Environment variables** - use type **Text** for `TURNSTILE_SITE_KEY` (Build environment), and type **Secret** for the other two (Runtime / Production).
 
 Create a Turnstile widget in the Cloudflare dashboard scoped to `kig.wiki` (and preview/localhost hostnames as needed). The free Turnstile plan is enough for this use case.
 

@@ -11,4 +11,6 @@ services:
       - /repo/kigwiki-docusaurus/.docusaurus
     environment:
       - NODE_ENV=development
+      # Cloudflare always-pass dummy site key (safe for local UI; not a production key)
+      - TURNSTILE_SITE_KEY=1x00000000000000000000AA
     command: npm run start -- --host 0.0.0.0

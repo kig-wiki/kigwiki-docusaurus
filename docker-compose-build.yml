@@ -9,4 +9,6 @@ services:
       - /repo/kigwiki-docusaurus/.docusaurus
     environment:
       - NODE_ENV=production
+      # Cloudflare always-pass dummy site key so local prod builds render the form UI
+      - TURNSTILE_SITE_KEY=1x00000000000000000000AA
     command: npm run build

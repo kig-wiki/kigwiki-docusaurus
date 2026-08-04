@@ -20,7 +20,16 @@ const config = {
   // For GitHub pages deployment, it is often '/<projectName>/'
   // Regular hosting or Cloudflare pages just leave baseurl alone and empty'
   baseUrl: '',
-  
+
+  // Public Turnstile site key (secret stays in Cloudflare Pages env).
+  // Local/dev falls back to Cloudflare's always-pass dummy key (not a real site key).
+  customFields: {
+    turnstileSiteKey:
+      process.env.TURNSTILE_SITE_KEY ??
+      (process.env.NODE_ENV === 'development'
+        ? '1x00000000000000000000AA'
+        : ''),
+  },
 
   // GitHub pages deployment config.
   // We aren't using GitHub pages, and don't technically need these.
@@ -146,7 +155,11 @@ const config = {
             {
               label: 'Contributing Guide',
               to: '/contributing/',
-            }
+            },
+            {
+              label: 'Ask a Question or submit feedback',
+              to: '/feedback/',
+            },
           ],
         },
       ],

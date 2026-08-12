@@ -66,6 +66,7 @@ export const filterHadataiBySearch = (data: Hadatai[], searchTerm: string): Hada
   return data.filter(item => {
     const searchableFields = [
       item.name.toLowerCase(),
+      item.alias?.toLowerCase() || '',
       item.website?.toLowerCase() || '',
       item.taobaoStore?.toLowerCase() || '',
       item.region?.toLowerCase() || '',
@@ -75,7 +76,8 @@ export const filterHadataiBySearch = (data: Hadatai[], searchTerm: string): Hada
     const priceExamplesMatch = item.priceExamples?.some(example =>
       example.type.toLowerCase().includes(term) ||
       example.price.toString().toLowerCase().includes(term) ||
-      (typeof example.material === 'string' && example.material.toLowerCase().includes(term))
+      (typeof example.material === 'string' && example.material.toLowerCase().includes(term)) ||
+      (typeof example.hadatai_color === 'string' && example.hadatai_color.toLowerCase().includes(term))
     ) || false;
     
     return searchableFields.some(field => field.includes(term)) || priceExamplesMatch;

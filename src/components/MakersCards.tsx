@@ -11,7 +11,7 @@ import {
   supportsEnglishOrdering,
 } from '../utils/filterUtils';
 import type { SortConfig } from '../utils/filterUtils';
-import { parseNotesWithLinks } from '../utils/textUtils';
+import { parseNotesWithLinks, formatAliasLabel } from '../utils/textUtils';
 
 interface MakersCardsProps {
   className?: string;
@@ -26,15 +26,14 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
     typeof maker.features === 'object' &&
     Object.entries(maker.features).filter(([, value]) => value === true).length > 0;
   const hasNotes = typeof maker.notes === 'string';
+  const aliasLabel = formatAliasLabel(maker.alias);
 
   return (
     <div className="maker-card">
       <div className="maker-card-header">
         <h3 className="maker-name">
           {typeof maker.name === 'string' ? maker.name : 'Unknown'}
-          {maker.alias && typeof maker.alias === 'string' && (
-            <span className="maker-alias"> ({maker.alias})</span>
-          )}
+          {aliasLabel && <span className="maker-alias"> ({aliasLabel})</span>}
         </h3>
       </div>
 

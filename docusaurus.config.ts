@@ -398,7 +398,7 @@ This directory contains information about various kigurumi mask makers, their pr
 ## Makers
 
 ${makersData.map((maker: any) => `
-### ${maker.name}${maker.alias ? ` (${maker.alias})` : ''}
+### ${maker.name}${maker.alias ? (/^formerly\b/i.test(String(maker.alias).trim()) ? ` (${String(maker.alias).trim()})` : ` (AKA: ${String(maker.alias).trim()})`) : ''}
 
 - **Status**: ${maker.status}
 - **Region**: ${maker.region}
@@ -440,13 +440,27 @@ Hadatai are full-body suits that are often worn with kigurumi masks. This direct
 ## Hadatai Makers
 
 ${hadataiData.map((hadatai: any) => `
-### ${hadatai.name}
+### ${hadatai.name}${hadatai.alias ? (/^formerly\b/i.test(String(hadatai.alias).trim()) ? ` (${String(hadatai.alias).trim()})` : ` (AKA: ${String(hadatai.alias).trim()})`) : ''}
 
 - **Region**: ${hadatai.region}
 - **Currency**: ${hadatai.currency}
 ${hadatai.socials && Object.keys(hadatai.socials).some(key => hadatai.socials[key]) ? `- **Socials**: ${Object.entries(hadatai.socials).filter(([_, url]) => url).map(([platform, url]) => `${platform}: ${url}`).join(', ')}` : ''}
 - **Price Examples**:
-${hadatai.priceExamples.map((example: any) => `  - ${example.type}: ${example.price}${example.link ? ` - [Link](${example.link})` : ''}`).join('\n')}
+${hadatai.priceExamples.map((example: any) => {
+                        const color = typeof example.hadatai_color === 'string' ? example.hadatai_color.trim() : '';
+                        let colorNote = '';
+                        if (color) {
+                          const key = color.toLowerCase();
+                          if (key === 'default') {
+                            colorNote = ' (Defaults to standard kig flesh tone)';
+                          } else if (key === 'unavailable' || key === 'none') {
+                            colorNote = ' (Standard Kig Color Option: No kigurumi-specific tone available)';
+                          } else {
+                            colorNote = ` (Standard Kig Color Option: ${color})`;
+                          }
+                        }
+                        return `  - ${example.type}: ${example.price}${colorNote}${example.link ? ` - [Link](${example.link})` : ''}`;
+                      }).join('\n')}
 ${hadatai.notes ? `- **Notes**: ${hadatai.notes}` : ''}
 `).join('\n')}`;
                     

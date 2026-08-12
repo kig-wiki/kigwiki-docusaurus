@@ -80,10 +80,13 @@ export interface PriceExample {
   currency?: string;
   link?: string;
   material?: string;
+  /** Color note: "default", "unavailable", or a specific option name/description */
+  hadatai_color?: string;
 }
 
 export interface Hadatai {
   name: string;
+  alias?: string;
   website?: string;
   taobaoStore?: string;
   region?: string;
@@ -302,6 +305,7 @@ const makerDataPlugin = (context: LoadContext, options: PluginOptions = {}): Plu
     try {
       return {
         name: item.name || 'Unknown',
+        alias: item.alias,
         website: item.website,
         taobaoStore: item.taobaoStore,
         region: getRegion(item),

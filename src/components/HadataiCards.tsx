@@ -11,7 +11,7 @@ import {
   supportsHadataiEnglishOrdering,
 } from '../utils/filterUtils';
 import type { SortConfig } from '../utils/filterUtils';
-import { parseNotesWithLinks } from '../utils/textUtils';
+import { parseNotesWithLinks, formatAliasLabel, getHadataiColorDisplay } from '../utils/textUtils';
 
 interface HadataiCardsProps {
   className?: string;
@@ -36,11 +36,15 @@ const HadataiCard: React.FC<{
 
   const hasPriceExamples = visiblePriceExamples.length > 0;
   const hasNotes = typeof item.notes === 'string';
+  const aliasLabel = formatAliasLabel(item.alias);
 
   return (
     <div className="hadatai-card">
       <div className="hadatai-card-header">
-        <h3 className="hadatai-name">{item.name}</h3>
+        <h3 className="hadatai-name">
+          {item.name}
+          {aliasLabel && <span className="hadatai-alias"> ({aliasLabel})</span>}
+        </h3>
       </div>
 
       <div className="hadatai-card-content">
@@ -71,25 +75,43 @@ const HadataiCard: React.FC<{
           <div className="hadatai-field">
             <span className="field-label">Price Examples:</span>
             <div className="price-examples">
-              {visiblePriceExamples.map((example, idx) => (
-                <div key={idx} className="price-example">
-                  <div className="price-example-type">{example.type}</div>
-                  <div className="price-example-price">
-                    {example.link ? (
-                      <a
-                        href={example.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="price-link"
+              {visiblePriceExamples.map((example, idx) => {
+                const colorDisplay = getHadataiColorDisplay(example.hadatai_color);
+
+                return (
+                  <div key={idx} className="price-example">
+                    <div className="price-example-type">{example.type}</div>
+                    {colorDisplay && (
+                      <div
+                        className={`price-example-kigurumi-color${
+                          colorDisplay.kind === 'unavailable' ? ' unavailable' : ''
+                        }${colorDisplay.kind === 'default' ? ' default' : ''}`}
                       >
-                        {example.price}
-                      </a>
-                    ) : (
-                      example.price
+                        {colorDisplay.label && (
+                          <span className="kigurumi-color-label">{colorDisplay.label}</span>
+                        )}
+                        <span className="kigurumi-color-value">
+                          {parseNotesWithLinks(colorDisplay.value)}
+                        </span>
+                      </div>
                     )}
+                    <div className="price-example-price">
+                      {example.link ? (
+                        <a
+                          href={example.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="price-link"
+                        >
+                          {example.price}
+                        </a>
+                      ) : (
+                        example.price
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

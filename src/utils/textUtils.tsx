@@ -81,3 +81,58 @@ export const parseNotesWithLinks = (notes: string): React.ReactNode[] => {
   return result.length > 0 ? result : [notes];
 };
 
+/** Display label for maker/hadatai aliases. Uses AKA: unless the value already starts with "formerly". */
+export const formatAliasLabel = (alias?: string | null): string | null => {
+  if (typeof alias !== 'string') return null;
+  const trimmed = alias.trim();
+  if (!trimmed) return null;
+  if (/^formerly\b/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `AKA: ${trimmed}`;
+};
+
+export type HadataiColorDisplay = {
+  kind: 'default' | 'option' | 'unavailable';
+  label: string | null;
+  value: string;
+};
+
+/**
+ * Normalize hadatai_color JSON values into display label + copy.
+ *
+ * JSON convention:
+ * - `"default"` → defaults to standard kig flesh tone
+ * - `"unavailable"` → no kigurumi-specific tone
+ * - any other non-empty string → Standard Kig Color Option: <value>
+ */
+export const getHadataiColorDisplay = (raw?: string | null): HadataiColorDisplay | null => {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const key = trimmed.toLowerCase();
+
+  if (key === 'default') {
+    return {
+      kind: 'default',
+      label: null,
+      value: 'Defaults to standard kig flesh tone',
+    };
+  }
+
+  if (key === 'unavailable' || key === 'none') {
+    return {
+      kind: 'unavailable',
+      label: 'Standard Kig Color Option',
+      value: 'No kigurumi-specific tone available',
+    };
+  }
+
+  return {
+    kind: 'option',
+    label: 'Standard Kig Color Option',
+    value: trimmed,
+  };
+};
+

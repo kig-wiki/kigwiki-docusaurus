@@ -72,6 +72,7 @@ export interface Maker {
   features?: Features;
   hairOptions?: HairOptions;
   notes?: string;
+  contentWarning?: boolean;
 }
 
 export interface PriceExample {
@@ -95,6 +96,7 @@ export interface Hadatai {
   priceExamples?: PriceExample[];
   notes?: string;
   englishOrdering?: boolean | string;
+  contentWarning?: boolean;
 }
 
 export interface MakerDataContent {
@@ -216,6 +218,7 @@ const makerDataPlugin = (context: LoadContext, options: PluginOptions = {}): Plu
         features: getFeatures(item),
         hairOptions: getHairOptions(item),
         notes: item.notes,
+        contentWarning: item.contentWarning === true ? true : undefined,
       };
     } catch (error) {
       log(`Error transforming maker ${item.name || 'unknown'}:`, error);
@@ -314,6 +317,7 @@ const makerDataPlugin = (context: LoadContext, options: PluginOptions = {}): Plu
         priceExamples: getPriceExamples(item, converter),
         notes: item.notes,
         englishOrdering: getEnglishOrderingSupport(item),
+        contentWarning: item.contentWarning === true ? true : undefined,
       };
     } catch (error) {
       log(`Error transforming hadatai ${item.name || 'unknown'}:`, error);

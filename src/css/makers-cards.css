@@ -651,3 +651,119 @@
   color: var(--ifm-color-emphasis-600);
   font-size: 0.9rem;
 }
+
+.nsfw-warning-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.nsfw-warning-backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.65);
+  cursor: default;
+  pointer-events: auto;
+}
+
+.nsfw-warning-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  padding: 1.25rem;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+}
+
+.nsfw-warning-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.nsfw-warning-body {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.nsfw-warning-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.625rem;
+  margin-top: 1.125rem;
+}
+
+.nsfw-warning-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.nsfw-warning-btn-primary {
+  background: var(--ifm-color-primary);
+  color: #fff;
+  border-color: var(--ifm-color-primary);
+}
+
+.nsfw-warning-btn-primary:hover {
+  background: var(--ifm-color-primary-dark);
+  border-color: var(--ifm-color-primary-dark);
+}
+
+.nsfw-warning-btn-secondary {
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  border-color: var(--ifm-color-emphasis-300);
+}
+
+.nsfw-warning-btn-secondary:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+@media (min-width: 640px) {
+  .nsfw-warning-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .nsfw-warning-btn {
+    width: auto;
+    min-width: 6.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nsfw-warning-overlay {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .nsfw-warning-dialog {
+    width: 100%;
+    padding: 1.1rem 1rem 1.25rem;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}

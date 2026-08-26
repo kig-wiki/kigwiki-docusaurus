@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 export interface MakerRecentPostsProps {
   makerName: string;
   xProfileUrl: string;
+  contentWarning?: boolean;
 }
 
 type MakerRecentPostsComponent = ComponentType<MakerRecentPostsProps>;

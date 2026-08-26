@@ -40,13 +40,19 @@ const MakerCard: React.FC<{ maker: Maker }> = memo(({ maker }) => {
       <div className="maker-card-content">
         <LinksFieldGroup
           fieldClassName="maker-field"
+          makerName={typeof maker.name === 'string' ? maker.name : 'Unknown'}
+          contentWarning={maker.contentWarning === true}
           website={maker.website}
           taobaoStore={maker.taobaoStore}
           socials={maker.socials}
         />
 
         {maker.socials?.x && isValidUrl(maker.socials.x) && (
-          <MakerRecentPosts makerName={maker.name} xProfileUrl={maker.socials.x} />
+          <MakerRecentPosts
+            makerName={maker.name}
+            xProfileUrl={maker.socials.x}
+            contentWarning={maker.contentWarning === true}
+          />
         )}
 
         {typeof maker.priceTier === 'string' && (

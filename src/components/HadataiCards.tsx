@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import type { Hadatai } from '../plugins/docusaurus-plugin-maker-data';
 import LinksFieldGroup from './shared/LinksFieldGroup';
 import { useCardsListFilters } from '../hooks/useCardsListFilters';
@@ -50,6 +50,8 @@ const HadataiCard: React.FC<{
       <div className="hadatai-card-content">
         <LinksFieldGroup
           fieldClassName="hadatai-field"
+          makerName={item.name}
+          contentWarning={item.contentWarning === true}
           website={item.website}
           taobaoStore={item.taobaoStore}
           socials={item.socials}
@@ -132,21 +134,15 @@ const HadataiCards: React.FC<HadataiCardsProps> = memo(({ className = '', data }
     searchTerm,
     debouncedSearchTerm,
     showEnglishOnly,
+    latexOnly,
+    fabricOnly,
     handleSearchChange,
     handleEnglishOnlyChange,
-  } = useCardsListFilters();
-  const [latexOnly, setLatexOnly] = useState(true);
-  const [fabricOnly, setFabricOnly] = useState(true);
+    handleLatexOnlyChange,
+    handleFabricOnlyChange,
+  } = useCardsListFilters({ syncMaterials: true });
   const [sortConfig, setSortConfig] = useState<HadataiSortConfig>({ key: 'name', direction: 'asc' });
   const handleSortChange = useSortSelectHandler(setSortConfig);
-
-  const handleLatexOnlyChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setLatexOnly(e.target.checked);
-  }, []);
-
-  const handleFabricOnlyChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setFabricOnly(e.target.checked);
-  }, []);
 
   const filteredAndSortedHadatai = useMemo(() => {
     let filtered = data;

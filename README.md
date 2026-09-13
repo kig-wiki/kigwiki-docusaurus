@@ -19,7 +19,7 @@ cd kigwiki-docusaurus
 docker compose up --build
 ```
 
-Docker mounts the **repository root** at `/repo` and runs the site from `/repo/kigwiki-docusaurus`, so the parent folders stay where Git expects them.
+Docker mounts the **repository root** at `/repo` and runs the site from `/repo/kigwiki-docusaurus`, so the paren't folders stay where Git expects them.
 
 ## Build Process
 
@@ -32,7 +32,7 @@ docker compose -f docker-compose-build.yml up --build
 
 ## Feedback form (Turnstile + Pages Function)
 
-The `/feedback` page posts to a Cloudflare Pages Function at `functions/api/feedback.ts` in the **content** repo (`kigwiki`). Submissions are verified with [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/), then forwarded to a Discord webhook (name + message only; no IP logging).
+The `/feedback` page posts to a Cloudflare Pages Function at `functions/api/feedback.ts` in the **content** repo (`kigwiki`). Submissions are verified with [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/), then forwarded to a Discord webhook (name + message only, no IP logging). If this gets abused we can always remove it.
 
 ### Build-time (public site key)
 
@@ -44,7 +44,7 @@ Set when building the Docusaurus site so the widget can render:
 
 Local Docker Compose sets Cloudflare’s **always-pass dummy** site key (`1x00000000000000000000AA`) automatically so the widget renders without your real production key. Dev mode also falls back to that dummy if the env var is unset.
 
-Submitting still needs a running Pages Function + secrets; local UI-only testing does not require your real Turnstile keys.
+Submitting still needs a running Pages Function + secrets, local UI-only testing does not require your real Turnstile keys.
 
 ### Runtime secrets (Pages Function)
 

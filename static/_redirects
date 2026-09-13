@@ -26,8 +26,8 @@
 /masks/commissioning-guide/ /buy/commissioning 301
 /masks/costs-and-timelines /buy/costs-timelines 301
 /masks/costs-and-timelines/ /buy/costs-timelines 301
-/masks/sizing-options /buy/sizing 301
-/masks/sizing-options/ /buy/sizing 301
+/masks/sizing-options /buy/commissioning 301
+/masks/sizing-options/ /buy/commissioning 301
 /masks/overview /start/mask-basics 301
 /masks/overview/ /start/mask-basics 301
 
@@ -72,8 +72,8 @@
 /masks/locks/ / 301
 /masks/maker-styles /buy/makers 301
 /masks/maker-styles/ /buy/makers 301
-/masks/mask-padding-and-fitting /care/mask-padding 301
-/masks/mask-padding-and-fitting/ /care/mask-padding 301
+/masks/mask-padding-and-fitting /care/mask-care 301
+/masks/mask-padding-and-fitting/ /care/mask-care 301
 /masks/mask-types / 301
 /masks/mask-types/ / 301
 /masks/visibility / 301
@@ -99,6 +99,15 @@
 /buy/costs-timelines /buy/commissioning 301
 /buy/costs-timelines/ /buy/commissioning 301
 
+# Redirect merged care and buying pages
+/care/cleaning-mask /care/mask-care 301
+/care/cleaning-mask/ /care/mask-care 301
+/care/mask-padding /care/mask-care 301
+/care/mask-padding/ /care/mask-care 301
+/care/kig-storage /care/mask-care 301
+/care/kig-storage/ /care/mask-care 301
+/buy/sizing /buy/commissioning 301
+/buy/sizing/ /buy/commissioning 301
 
 # fix redirects for publications section
 /publications/kigwiki-admin-publications/admin-intro /publications/admin-intro 301

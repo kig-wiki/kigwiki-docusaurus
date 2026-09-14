@@ -87,6 +87,22 @@
   --ifm-color-primary-light: lab(75% 46 25);
   --ifm-color-primary-lighter: lab(80% 46 25);
   --ifm-color-primary-lightest: lab(85% 46 25);
+
+  --ifm-navbar-search-input-placeholder-color: var(--ifm-color-emphasis-800);
+}
+
+[data-theme='dark'] .navbar__search-input::-moz-placeholder {
+  opacity: 1;
+}
+
+[data-theme='dark'] .navbar__search-input::placeholder {
+  opacity: 1;
+}
+
+[data-theme='dark'] .algolia-autocomplete .algolia-docsearch-suggestion--text,
+[data-theme='dark'] .algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column,
+[data-theme='dark'] .algolia-autocomplete .algolia-docsearch-suggestion--version {
+  color: var(--ifm-color-emphasis-800);
 }
 
 /* Text selection colors */

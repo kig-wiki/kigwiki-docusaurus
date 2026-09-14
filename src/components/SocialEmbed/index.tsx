@@ -2,16 +2,25 @@ import React from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import { useColorMode } from '@docusaurus/theme-common';
 // Kig.wiki custom component used to embed social media posts into the page
-// Currently Twitter and Bluesky are supported
+// Twitter, Bluesky, TikTok, YouTube, and Instagram are supported
 // Bluesky posts are resolved to DIDs at build time in the remark plugin /src/plugins/remark-social-embeds.ts
-type Platform = 'twitter' | 'bluesky' | 'tiktok' | 'youtube';
+type Platform = 'twitter' | 'bluesky' | 'tiktok' | 'youtube' | 'instagram';
 
 interface SocialEmbedProps {
   post: string;
   maxWidth?: number;
   did?: string; // Optional DID for Bluesky, will be injected at build time
-  embedHtml?: string; // Add embedHtml prop for TikTok
 }
+
+type InstagramWindow = Window & {
+  instgrm?: {
+    Embeds: {
+      process: () => void;
+    };
+  };
+};
+
+const INSTAGRAM_EMBED_SCRIPT = 'https://www.instagram.com/embed.js';
 
 const parsePostUrl = (url: string): { platform: Platform; id: string } => {
   try {
@@ -37,26 +46,34 @@ const parsePostUrl = (url: string): { platform: Platform; id: string } => {
       .replace(/\?.*$/, ''); // Remove query parameters only for non-YouTube URLs
 
     const cleanUrlObj = new URL(cleanUrl);
+    const hostname = cleanUrlObj.hostname.replace(/^www\./, '');
 
     // Handle Twitter/X URLs
-    if (cleanUrlObj.hostname === 'twitter.com' || cleanUrlObj.hostname === 'x.com') {
+    if (hostname === 'twitter.com' || hostname === 'x.com') {
       const matches = cleanUrlObj.pathname.match(/\/\w+\/status\/(\d+)/);
       if (!matches) throw new Error('Invalid Twitter URL format');
       return { platform: 'twitter', id: matches[1] };
     }
     
     // Handle Bluesky URLs
-    if (cleanUrlObj.hostname === 'bsky.app') {
+    if (hostname === 'bsky.app') {
       const matches = cleanUrlObj.pathname.match(/\/profile\/([^/]+)\/post\/([^/]+)/);
       if (!matches) throw new Error('Invalid Bluesky URL format');
       return { platform: 'bluesky', id: `${matches[1]}/post/${matches[2]}` };
     }
     
     // Add TikTok URL parsing
-    if (cleanUrlObj.hostname === 'www.tiktok.com' || cleanUrlObj.hostname === 'tiktok.com') {
+    if (hostname === 'tiktok.com') {
       const matches = cleanUrlObj.pathname.match(/\/@([^/]+)\/video\/(\d+)/);
       if (!matches) throw new Error('Invalid TikTok URL format');
       return { platform: 'tiktok', id: `${matches[1]}/video/${matches[2]}` };
+    }
+
+    if (hostname === 'instagram.com' || hostname === 'instagr.am') {
+      const matches = cleanUrlObj.pathname.match(/\/(p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);
+      if (!matches) throw new Error('Invalid Instagram URL format');
+      const kind = matches[1] === 'reels' ? 'reel' : matches[1];
+      return { platform: 'instagram', id: `${kind}/${matches[2]}` };
     }
     
     throw new Error('Unsupported platform URL');
@@ -66,53 +83,169 @@ const parsePostUrl = (url: string): { platform: Platform; id: string } => {
   }
 };
 
-const TikTokEmbed: React.FC<{ embedHtml: string; maxWidth?: number }> = ({ embedHtml, maxWidth }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+const processInstagramEmbeds = () => {
+  (window as InstagramWindow).instgrm?.Embeds?.process();
+};
+
+const loadInstagramEmbedScript = (): Promise<void> => {
+  if ((window as InstagramWindow).instgrm?.Embeds?.process) {
+    return Promise.resolve();
+  }
+
+  const existing = document.querySelector(`script[src="${INSTAGRAM_EMBED_SCRIPT}"]`);
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('Failed to load Instagram embed script')), { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = INSTAGRAM_EMBED_SCRIPT;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Instagram embed script'));
+    document.body.appendChild(script);
+  });
+};
+
+const InstagramEmbed: React.FC<{ permalink: string; maxWidth?: number }> = ({ permalink, maxWidth }) => {
+  const { colorMode } = useColorMode();
 
   React.useEffect(() => {
-    // Load TikTok embed script
-    const scriptId = 'tiktok-embed-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://www.tiktok.com/embed.js';
-      script.async = true;
-      document.body.appendChild(script);
-    } else {
-      // @ts-ignore
-      if (window.tiktok && window.tiktok.reload) {
-        // @ts-ignore
-        window.tiktok.reload();
-      }
-    }
-  }, [embedHtml]);
+    let cancelled = false;
 
-  // Sanitize the embedHtml and modify iframe attributes
-  // sandbox settings is to yeet some spicy tiktok ones it wants to have but doesnt need. 
-  const sanitizedHtml = embedHtml
-    .replace(/<script.*?<\/script>/g, '')
-    .replace(
-      /sandbox="([^"]*)"/, 
-      'sandbox="allow-scripts allow-same-origin allow-popups"'
-    )
-    .replace(
-      /style="([^"]*)"/, 
-      'style="width: 605px; height: 739px; display: block; visibility: unset; max-height: 739px;"'
-    )
-    .replace(
-      /<blockquote([^>]*)style="[^"]*"/, 
-      '<blockquote$1style="width: fit-content; margin: 10px 0; padding: 0; border: none; box-shadow: none;"'
-    );
+    loadInstagramEmbedScript()
+      .then(() => {
+        if (cancelled) {
+          return;
+        }
+        requestAnimationFrame(() => {
+          if (!cancelled) {
+            processInstagramEmbeds();
+          }
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [permalink, colorMode]);
 
   return (
-    <div 
-      ref={containerRef}
-      style={{ 
-        maxWidth,
+    <div
+      style={{
+        maxWidth: maxWidth || 540,
         width: '100%',
-      }} 
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
-    />
+        margin: '10px 0',
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <blockquote
+        className="instagram-media"
+        data-instgrm-permalink={permalink}
+        data-instgrm-version="14"
+        style={{
+          background: '#FFF',
+          border: 0,
+          borderRadius: 3,
+          boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
+          margin: '1px',
+          maxWidth: 540,
+          minWidth: 0,
+          padding: 0,
+          width: 'calc(100% - 2px)',
+        }}
+      >
+        <a href={permalink} target="_blank" rel="noopener noreferrer nofollow">
+          View this post on Instagram
+        </a>
+      </blockquote>
+    </div>
+  );
+};
+
+const getTikTokVideoId = (id: string): string => {
+  const parts = id.split('/video/');
+  return parts[1] || id;
+};
+
+const TikTokEmbed: React.FC<{ id: string; maxWidth?: number }> = ({ id, maxWidth }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = React.useState(false);
+  const { colorMode } = useColorMode();
+  const videoId = getTikTokVideoId(id);
+
+  React.useEffect(() => {
+    const node = containerRef.current;
+    if (!node || isInView) {
+      return;
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setIsInView(true);
+        }
+      },
+      { rootMargin: '100px 0px', threshold: 0.01 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isInView]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        maxWidth: maxWidth || 325,
+        width: '100%',
+        margin: '10px 0',
+      }}
+    >
+      {isInView ? (
+        <iframe
+          src={`https://www.tiktok.com/player/v1/${videoId}?autoplay=0`}
+          title="TikTok video"
+          allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          style={{
+            width: '100%',
+            aspectRatio: '9 / 16',
+            border: 0,
+            borderRadius: 8,
+            display: 'block',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: '100%',
+            aspectRatio: '9 / 16',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid #e1e4e8',
+            borderRadius: 8,
+            backgroundColor: colorMode === 'dark' ? '#1b1b1d' : '#f6f8fa',
+          }}
+        >
+          TikTok video
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -155,7 +288,7 @@ const LoadingPlaceholder: React.FC<{ platform: Platform; maxWidth?: number; colo
     style={{ 
       maxWidth: maxWidth || 605,
       width: '100%',
-      height: platform === 'youtube' ? '340px' : '200px',
+      height: platform === 'youtube' || platform === 'instagram' ? '340px' : '200px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -184,7 +317,7 @@ const ErrorDisplay: React.FC<{ message: string }> = ({ message }) => (
 );
 
 // Main component wrapper
-const SocialEmbedContent: React.FC<SocialEmbedProps> = ({ post, maxWidth, did, embedHtml }) => {
+const SocialEmbedContent: React.FC<SocialEmbedProps> = ({ post, maxWidth, did }) => {
   const { colorMode } = useColorMode();
   
   return (
@@ -209,7 +342,6 @@ const SocialEmbedContent: React.FC<SocialEmbedProps> = ({ post, maxWidth, did, e
             maxWidth={maxWidth} 
             colorMode={colorMode}
             did={did}
-            embedHtml={embedHtml}
           />
         );
       })()}
@@ -232,8 +364,7 @@ const PlatformEmbed: React.FC<{
   maxWidth?: number;
   colorMode: string;
   did?: string;
-  embedHtml?: string;
-}> = ({ platform, id, maxWidth, colorMode, did, embedHtml }) => {
+}> = ({ platform, id, maxWidth, colorMode, did }) => {
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
@@ -242,8 +373,8 @@ const PlatformEmbed: React.FC<{
         ? 'https://platform.x.com/widgets.js'
         : platform === 'bluesky'
         ? 'https://embed.bsky.app/static/embed.js'
-        : platform === 'tiktok'
-        ? 'https://www.tiktok.com/embed.js'
+        : platform === 'instagram'
+        ? INSTAGRAM_EMBED_SCRIPT
         : null;
 
       if (!scriptSrc) {
@@ -324,8 +455,17 @@ const PlatformEmbed: React.FC<{
     );
   }
 
-  if (platform === 'tiktok' && embedHtml) {
-    return <TikTokEmbed embedHtml={embedHtml} maxWidth={maxWidth} />;
+  if (platform === 'tiktok') {
+    return <TikTokEmbed id={id} maxWidth={maxWidth} />;
+  }
+
+  if (platform === 'instagram') {
+    return (
+      <InstagramEmbed
+        permalink={`https://www.instagram.com/${id}/`}
+        maxWidth={maxWidth}
+      />
+    );
   }
 
   throw new Error(`Unsupported platform: ${platform}`);

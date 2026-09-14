@@ -1,15 +1,6 @@
 import { visit } from 'unist-util-visit';
 import type { Plugin } from 'unified';
 
-// Type definitions
-interface TikTokOEmbed {
-  html: string;
-  version: string;
-  type: string;
-  title: string;
-  provider_name: string;
-}
-
 interface MdxJsxAttribute {
   type: 'mdxJsxAttribute';
   name: string;
@@ -102,7 +93,14 @@ const parseBlueskyUrl = (url: string): string | null => {
 };
 
 const isBlueskyUrl = (url: string): boolean => url.includes('bsky.app');
-const isTikTokUrl = (url: string): boolean => url.includes('tiktok.com');
+const isClientOnlyEmbedUrl = (url: string): boolean =>
+  url.includes('instagram.com') ||
+  url.includes('instagr.am') ||
+  url.includes('twitter.com') ||
+  url.includes('x.com') ||
+  url.includes('youtube.com') ||
+  url.includes('youtu.be') ||
+  url.includes('tiktok.com');
 
 // DID resolution with improved error handling
 const resolveDid = async (handle: string): Promise<string> => {
@@ -145,36 +143,6 @@ const resolveDid = async (handle: string): Promise<string> => {
   });
 };
 
-// TikTok embed resolver with improved error handling
-const resolveTikTokEmbed = async (url: string): Promise<string> => {
-  return rateLimiter.add(async () => {
-    try {
-      const response = await fetch(
-        `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`
-      );
-      
-      if (!response.ok) {
-        throw new EmbedResolutionError(
-          `Failed to fetch TikTok embed: ${response.statusText}`,
-          url
-        );
-      }
-      
-      const data: TikTokOEmbed = await response.json();
-      return data.html;
-    } catch (error) {
-      if (error instanceof EmbedResolutionError) {
-        throw error;
-      }
-      throw new EmbedResolutionError(
-        `Unexpected error resolving TikTok embed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        url,
-        error instanceof Error ? error : undefined
-      );
-    }
-  });
-};
-
 // Embed resolvers registry using strategy pattern
 const embedResolvers: EmbedResolver[] = [
   {
@@ -187,13 +155,6 @@ const embedResolvers: EmbedResolver[] = [
       
       const did = await resolveDid(handle);
       return { name: 'did', value: did };
-    }
-  },
-  {
-    canHandle: isTikTokUrl,
-    resolve: async (url: string) => {
-      const html = await resolveTikTokEmbed(url);
-      return { name: 'embedHtml', value: html };
     }
   }
 ];
@@ -208,7 +169,9 @@ const processEmbed = async (node: MdxJsxFlowElement, postUrl: string): Promise<v
   const resolver = findResolver(postUrl);
   
   if (!resolver) {
-    console.warn(`No resolver found for URL: ${postUrl}`);
+    if (!isClientOnlyEmbedUrl(postUrl)) {
+      console.warn(`No resolver found for URL: ${postUrl}`);
+    }
     return;
   }
 

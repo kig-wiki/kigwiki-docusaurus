@@ -1,5 +1,9 @@
 import React, {FormEvent, useCallback, useEffect, useId, useRef, useState} from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {
+  FEEDBACK_FORM_STRINGS,
+  type FeedbackLocale,
+} from './localeStrings';
 import styles from './styles.module.css';
 
 const MAX_MESSAGE_LENGTH = 2000;
@@ -13,6 +17,7 @@ declare global {
         element: HTMLElement,
         options: {
           sitekey: string;
+          language?: string;
           callback: (token: string) => void;
           'expired-callback'?: () => void;
           'error-callback'?: () => void;
@@ -62,7 +67,12 @@ function loadTurnstileScript(): Promise<void> {
 
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
 
-export default function FeedbackForm(): React.JSX.Element {
+type Props = {
+  locale?: FeedbackLocale;
+};
+
+export default function FeedbackForm({locale = 'en'}: Props): React.JSX.Element {
+  const strings = FEEDBACK_FORM_STRINGS[locale];
   const {siteConfig} = useDocusaurusContext();
   const siteKey = String(siteConfig.customFields?.turnstileSiteKey ?? '');
   const nameId = useId();
@@ -90,14 +100,21 @@ export default function FeedbackForm(): React.JSX.Element {
     }
 
     let cancelled = false;
+    setToken(null);
 
     loadTurnstileScript()
       .then(() => {
-        if (cancelled || !widgetHostRef.current || !window.turnstile || widgetIdRef.current) {
+        if (cancelled || !widgetHostRef.current || !window.turnstile) {
           return;
         }
+        if (widgetIdRef.current) {
+          window.turnstile.remove(widgetIdRef.current);
+          widgetIdRef.current = null;
+        }
+        widgetHostRef.current.innerHTML = '';
         widgetIdRef.current = window.turnstile.render(widgetHostRef.current, {
           sitekey: siteKey,
+          language: strings.turnstileLanguage,
           callback: (nextToken) => setToken(nextToken),
           'expired-callback': () => setToken(null),
           'error-callback': () => setToken(null),
@@ -105,7 +122,7 @@ export default function FeedbackForm(): React.JSX.Element {
       })
       .catch(() => {
         if (!cancelled) {
-          setErrorMessage('Security check failed to load. Please refresh and try again.');
+          setErrorMessage(strings.errorTurnstileLoad);
           setSubmitState('error');
         }
       });
@@ -117,7 +134,7 @@ export default function FeedbackForm(): React.JSX.Element {
         widgetIdRef.current = null;
       }
     };
-  }, [siteKey]);
+  }, [siteKey, strings.errorTurnstileLoad, strings.turnstileLanguage]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -125,12 +142,12 @@ export default function FeedbackForm(): React.JSX.Element {
 
     const trimmedMessage = message.trim();
     if (!trimmedMessage) {
-      setErrorMessage('Please enter a message.');
+      setErrorMessage(strings.errorEmpty);
       setSubmitState('error');
       return;
     }
     if (!token) {
-      setErrorMessage('Please complete the security check.');
+      setErrorMessage(strings.errorCaptcha);
       setSubmitState('error');
       return;
     }
@@ -145,6 +162,7 @@ export default function FeedbackForm(): React.JSX.Element {
           name: name.trim() || undefined,
           message: trimmedMessage,
           turnstileToken: token,
+          locale,
         }),
       });
 
@@ -158,7 +176,7 @@ export default function FeedbackForm(): React.JSX.Element {
       resetTurnstile();
     } catch {
       setSubmitState('error');
-      setErrorMessage('Something went wrong. Please try again in a moment.');
+      setErrorMessage(strings.errorGeneric);
       resetTurnstile();
     }
   }
@@ -166,8 +184,7 @@ export default function FeedbackForm(): React.JSX.Element {
   if (!siteKey) {
     return (
       <div className={styles.unconfigured} role="status">
-        Feedback form unavailable on this build. Production sets{' '}
-        <code>TURNSTILE_SITE_KEY</code> at build time.
+        {strings.unconfigured}
       </div>
     );
   }
@@ -175,8 +192,7 @@ export default function FeedbackForm(): React.JSX.Element {
   if (submitState === 'success') {
     return (
       <p className={`${styles.status} ${styles.statusSuccess}`} role="status">
-        Thanks - your message was received. We may not reply to every submission, but we do read
-        them.
+        {strings.success}
       </p>
     );
   }
@@ -185,10 +201,10 @@ export default function FeedbackForm(): React.JSX.Element {
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <div className={styles.field}>
         <label className={styles.label} htmlFor={nameId}>
-          Name <span aria-hidden="true">(optional)</span>
+          {strings.nameLabel} <span aria-hidden="true">{strings.nameOptional}</span>
         </label>
         <p className={styles.hint} id={`${nameId}-hint`}>
-          Leave blank to stay anonymous - a name is not required.
+          {strings.nameHint}
         </p>
         <input
           id={nameId}
@@ -199,14 +215,14 @@ export default function FeedbackForm(): React.JSX.Element {
           maxLength={MAX_NAME_LENGTH}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Anonymous"
+          placeholder={strings.namePlaceholder}
           aria-describedby={`${nameId}-hint`}
         />
       </div>
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor={messageId}>
-          Your question or feedback
+          {strings.messageLabel}
         </label>
         <textarea
           id={messageId}
@@ -216,7 +232,7 @@ export default function FeedbackForm(): React.JSX.Element {
           maxLength={MAX_MESSAGE_LENGTH}
           value={message}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="What would you like to ask or share?"
+          placeholder={strings.messagePlaceholder}
         />
         <span className={styles.charCount}>
           {message.length}/{MAX_MESSAGE_LENGTH}
@@ -231,7 +247,7 @@ export default function FeedbackForm(): React.JSX.Element {
           className={`button button--primary ${styles.submit}`}
           disabled={submitState === 'submitting' || !token}
         >
-          {submitState === 'submitting' ? 'Sending…' : 'Submit'}
+          {submitState === 'submitting' ? strings.submitting : strings.submit}
         </button>
         {submitState === 'error' && errorMessage ? (
           <p className={`${styles.status} ${styles.statusError}`} role="alert">

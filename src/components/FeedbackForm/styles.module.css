@@ -1,3 +1,37 @@
+.localeBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+}
+
+.localeButton {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ifm-link-color);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.localeButton:hover {
+  text-decoration: underline;
+}
+
+.localeCurrent {
+  font-weight: 600;
+}
+
+.localeSep {
+  opacity: 0.55;
+  user-select: none;
+}
+
 .form {
   display: flex;
   flex-direction: column;

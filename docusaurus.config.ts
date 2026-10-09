@@ -7,7 +7,7 @@ const path = require('path');
 
 const config = {
   title: 'Kig.wiki',
-  tagline: 'Your answer to all things Kigurumi Masks, Hadatai, and more.',
+  tagline: 'Guides to Kigurumi Masks, Hadatai, buying, care, and performance.',
   favicon: 'icons/favicon.ico',
 
   // Docusaurus Faster - enables faster build infrastructure
@@ -41,11 +41,10 @@ const config = {
   trailingSlash: true,
   // Repo-root folders (same paths Git tracks) for VCS last-updated + sitemap lastmod
   staticDirectories: ['static', '../static'],
-  // Quality of life, perhaps worth setting stricter
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'throw',
   markdown: {
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: 'throw',
     },
   },
 
@@ -92,9 +91,8 @@ const config = {
         // Sitemap config self explanatory  
         sitemap: {
           lastmod: 'date',
-          changefreq: 'weekly',
-          priority: 0.5,
           ignorePatterns: [
+            '/feedback/**',
             '/tags/**',
             '/publications/archive/**',
             '/publications/authors/**'
@@ -121,9 +119,9 @@ const config = {
 
     // various images and navbar config
     navbar: {
-      title: 'Kigwiki',
+      title: 'Kig.wiki',
       logo: {
-        alt: 'Kigwiki Logo',
+        alt: 'Kig.wiki Logo',
         src: 'icons/kigwiki.webp',
       },
       items: [
@@ -134,7 +132,7 @@ const config = {
         },
         {
           label: 'Get Started',
-          to: '/start/what-is-kigurumi/',
+          to: '/start/get-started-with-kigurumi/',
         },
         {
           label: 'Contributor Publications',
